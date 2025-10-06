@@ -5,8 +5,6 @@ import Register from "./components/Register.jsx";
 import { useAuth } from "./contexts/AuthContext";
 
 function App() {
-  const { currentUser } = useAuth();
-
   return (
     <Router>
       <Routes>
