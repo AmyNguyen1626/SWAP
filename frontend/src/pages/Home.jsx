@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { getIdToken } from "firebase/auth";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth } from "../contexts/useAuth";
 
 export default function Home() {
     const { currentUser } = useAuth();
