@@ -1,5 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Home from "./pages/Home.jsx";
+import Profile from "./pages/Profile.jsx";
+import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import Login from "./components/Login.jsx";
 import Register from "./components/Register.jsx";
 
@@ -13,14 +15,14 @@ function App() {
         <Route path="/register" element={<Register />} />
 
         {/* Protected routes */}
-        {/* <Route
-          path="/listing/:id"
+        <Route
+          path="/profile"
           element={
             <ProtectedRoute>
-              <ListingDetail />
+              <Profile />
             </ProtectedRoute>
           }
-        /> */}
+        />
       </Routes>
     </Router>
   );
