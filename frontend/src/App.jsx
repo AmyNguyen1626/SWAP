@@ -7,9 +7,20 @@ function App() {
   return (
     <Router>
       <Routes>
+        {/* Public routes */}
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+
+        {/* Protected routes */}
+        {/* <Route
+          path="/listing/:id"
+          element={
+            <ProtectedRoute>
+              <ListingDetail />
+            </ProtectedRoute>
+          }
+        /> */}
       </Routes>
     </Router>
   );
