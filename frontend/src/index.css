@@ -25,10 +25,17 @@ h1 {
 }
 
 h2 {
-    font-weight: 400;
+    font-weight: 600;
     color: #054341;
     padding: 30px;
     text-align: center;
+}
+
+p {
+    color: #054341;
+    padding: 10px 30px 10px 30px;
+
+    letter-spacing: 1.5px;
 }
 
 /* Input fields */
