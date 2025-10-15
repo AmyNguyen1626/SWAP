@@ -28,6 +28,7 @@ h2 {
     font-weight: 400;
     color: #054341;
     padding: 30px;
+    text-align: center;
 }
 
 /* Input fields */
@@ -64,6 +65,7 @@ button {
     cursor: pointer;
     display: block;
     margin: 2rem auto 2rem;
+    max-width: 400px;
 }
 
 button:hover {
