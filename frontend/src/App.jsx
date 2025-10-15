@@ -5,6 +5,7 @@ import Profile from "./pages/Profile.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import Login from "./components/Login.jsx";
 import Register from "./components/Register.jsx";
+import CreateListingPage from "./pages/CreateListingPage.jsx";
 
 function App() {
   return (
@@ -22,6 +23,14 @@ function App() {
           element={
             <ProtectedRoute>
               <Profile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/create-listing"
+          element={
+            <ProtectedRoute>
+              <CreateListingPage />
             </ProtectedRoute>
           }
         />
