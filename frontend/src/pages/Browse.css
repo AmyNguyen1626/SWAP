@@ -1,0 +1,135 @@
+.browse-container {
+    padding: 40px 60px;
+    max-width: 1600px;
+    margin: 0 auto;
+}
+
+/* Header Section */
+.browse-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 40px;
+    gap: 40px;
+}
+
+.browse-header h1 {
+    font-size: 3rem;
+    font-weight: 700;
+    color: #054341;
+    margin: 0;
+}
+
+/* Search Bar */
+.search-bar {
+    display: flex;
+    align-items: center;
+    background-color: white;
+    border: 2px solid #7ab0ae;
+    border-radius: 50px;
+    overflow: hidden;
+    width: 400px;
+    max-width: 100%;
+}
+
+.search-bar input {
+    flex: 1;
+    border: none;
+    padding: 12px 20px;
+    font-size: 1rem;
+    background-color: white;
+    color: #054341;
+    margin: 0;
+}
+
+.search-bar input:focus {
+    outline: none;
+    border: none;
+}
+
+.search-bar input::placeholder {
+    color: #7ab0ae;
+}
+
+.search-btn {
+    background-color: #054341;
+    border: none;
+    padding: 12px 20px;
+    cursor: pointer;
+    font-size: 1.2rem;
+    margin: 0;
+    width: auto;
+    border-radius: 0;
+    transition: background-color 0.3s ease;
+}
+
+.search-btn:hover {
+    background-color: #7ab0ae;
+}
+
+/* Listings Grid */
+.listings-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 40px;
+    margin-top: 40px;
+}
+
+/* Messages */
+.loading-message,
+.error-message,
+.no-listings {
+    text-align: center;
+    padding: 60px 20px;
+}
+
+.loading-message p {
+    font-size: 1.3rem;
+    color: #054341;
+}
+
+.error-message p {
+    font-size: 1.2rem;
+    color: #d32f2f;
+}
+
+.no-listings p {
+    font-size: 1.2rem;
+    color: #666;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .browse-container {
+        padding: 30px 40px;
+    }
+
+    .browse-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .search-bar {
+        width: 100%;
+    }
+
+    .listings-grid {
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 30px;
+    }
+}
+
+@media (max-width: 768px) {
+    .browse-container {
+        padding: 20px;
+    }
+
+    .browse-header h1 {
+        font-size: 2rem;
+    }
+
+    .listings-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+}
