@@ -14,3 +14,7 @@ backend/dist/
 frontend/build/
 
 .DS_Store
+
+# tools 
+seedlistings.js
+TestSeed.jsx

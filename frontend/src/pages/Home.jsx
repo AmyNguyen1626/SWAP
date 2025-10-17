@@ -48,7 +48,8 @@ export default function Home() {
     const navigate = useNavigate();
 
     return (
-        <div style={{marginTop: "150px"}}>
+        // changed from 150 to 0
+        <div style={{marginTop: "0px"}}>
             <Swiper
                 modules={[EffectCoverflow, Autoplay]}
                 grabCursor={true}
