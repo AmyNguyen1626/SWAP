@@ -1,11 +1,12 @@
 import { useState } from "react";
+import "./CreateListingForm.css"
 
 export default function CreateListingForm() {
     const [formData, setFormData] = useState({
         name: "",
         price: "",
         condition: "",
-        category: "",
+        category: "", // (??)
         location: "",
         description: "",
         images: [], // 3-4 images (?)
@@ -31,21 +32,21 @@ export default function CreateListingForm() {
     };
 
     return (
-        <div>
+        <div className="create-listing-container">
             <h2>Create New Listing</h2>
             <form onSubmit={handleSubmit}>
                 <label>
-                    Listing Name:
-                    <input type="text" name="name" value={formData.name} onChange={handleChange} required />
+                    <p>Listing Name:</p>
+                    <input type="text" name="name" placeholder="Name" value={formData.name} onChange={handleChange} required />
                 </label>
 
                 <label>
-                    Price:
-                    <input type="number" name="price" value={formData.price} onChange={handleChange} required />
+                    <p>Price:</p>
+                    <input type="number" name="price" placeholder="Price" value={formData.price} onChange={handleChange} required />
                 </label>
 
                 <label>
-                    Condition:
+                    <p>Condition:</p>
                     <select name="condition" value={formData.condition} onChange={handleChange} required>
                         <option value="">Select condition</option>
                         <option value="New">New</option>
@@ -57,22 +58,23 @@ export default function CreateListingForm() {
                 </label>
 
                 <label>
-                    Category:
-                    <input type="text" name="category" value={formData.category} onChange={handleChange} required />
+                    <p>Category:</p>
+                    <input type="text" name="category" placeholder="Category" value={formData.category} onChange={handleChange} required />
+                </label>
+                {/* engine, make, model, type, year */}
+
+                <label>
+                    <p>Location:</p>
+                    <input type="text" name="location" placeholder="Swap Location" value={formData.location} onChange={handleChange} required />
                 </label>
 
                 <label>
-                    Location:
-                    <input type="text" name="location" value={formData.location} onChange={handleChange} required />
+                    <p>Description:</p>
+                    <textarea name="description" placeholder="Car Description" value={formData.description} onChange={handleChange} rows="4" />
                 </label>
 
                 <label>
-                    Description:
-                    <textarea name="description" value={formData.description} onChange={handleChange} rows="4" />
-                </label>
-
-                <label>
-                    Upload Images (3-4):
+                    <p>Upload Images (3-4):</p>
                     <input type="file" accept="image/*" multiple onChange={handleImageChange} />
                 </label>
 
