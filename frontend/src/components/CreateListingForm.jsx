@@ -6,7 +6,13 @@ export default function CreateListingForm() {
         name: "",
         price: "",
         condition: "",
-        category: "", // (??)
+        category: {
+            engine: "",
+            make: "",
+            model: "",
+            type: "",
+            year: "",
+        },
         location: "",
         description: "",
         images: [], // 3-4 images (?)
@@ -59,9 +65,34 @@ export default function CreateListingForm() {
 
                 <label>
                     <p>Category:</p>
-                    <input type="text" name="category" placeholder="Category" value={formData.category} onChange={handleChange} required />
                 </label>
-                {/* engine, make, model, type, year */}
+
+                <div className="category-fields">
+                    <label>
+                        <p>Engine:</p>
+                        <input type="text" name="engine" placeholder="Engine" value={formData.category.engine} onChange={handleChange} required />
+                    </label>
+
+                    <label>
+                        <p>Make:</p>
+                        <input type="text" name="make" placeholder="Make" value={formData.category.make} onChange={handleChange} required />
+                    </label>
+
+                    <label>
+                        <p>Model:</p>
+                        <input type="text" name="model" placeholder="Model" value={formData.category.model} onChange={handleChange} required />
+                    </label>
+
+                    <label>
+                        <p>Type:</p>
+                        <input type="text" name="type" placeholder="Type" value={formData.category.type} onChange={handleChange} required />
+                    </label>
+
+                    <label>
+                        <p>Year:</p>
+                        <input type="number" name="year" placeholder="Year" value={formData.category.year} onChange={handleChange} required />
+                    </label>
+                </div>
 
                 <label>
                     <p>Location:</p>
@@ -75,7 +106,42 @@ export default function CreateListingForm() {
 
                 <label>
                     <p>Upload Images (3-4):</p>
-                    <input type="file" accept="image/*" multiple onChange={handleImageChange} />
+                    <div className="file-upload-container">
+                        <input
+                            id="fileInput"
+                            type="file"
+                            accept="image/*"
+                            multiple
+                            style={{ display: "none" }}
+                            onChange={handleImageChange}
+                        />
+
+                        {/* Display either "No file uploaded" or thumbnails */}
+                        {formData.images.length === 0 ? (
+                            <p className="no-image-text">No image uploaded</p>
+                        ) : (
+                            <div className="image-previews">
+                                {Array.from(formData.images).map((file, index) => {
+                                    const url = URL.createObjectURL(file);
+                                    return (
+                                        <img
+                                            key={index}
+                                            src={url}
+                                            alt={`preview-${index}`}
+                                            className="thumbnail"
+                                        />
+                                    );
+                                })}
+                            </div>
+                        )}
+
+                        <button
+                            type="button"
+                            onClick={() => document.getElementById("fileInput").click()}
+                        >
+                            Upload Images
+                        </button>
+                    </div>
                 </label>
 
                 <button type="submit">Submit Listing</button>
