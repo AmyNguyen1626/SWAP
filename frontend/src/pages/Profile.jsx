@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { getIdToken } from "firebase/auth";
 import { useAuth } from "../contexts/useAuth";
+import { auth } from "../firebase";  
 
 export default function Profile() {
     const { currentUser } = useAuth();
@@ -32,6 +33,15 @@ export default function Profile() {
         fetchProfile();
     }, [currentUser]);
 
+    const handleLogout = async () => {
+        try {
+            await auth.signOut();
+            navigate("/login"); // redirect to login page
+        } catch (err) {
+            console.error("Logout failed:", err);
+        }
+    };
+
     return (
         <div>
             <h1>Profile Page</h1>
@@ -41,6 +51,7 @@ export default function Profile() {
             ) : (
                 <p>Loading profile...</p>
             )}
+            <button onClick={handleLogout}>Log Out</button>
         </div>
     );
 }
