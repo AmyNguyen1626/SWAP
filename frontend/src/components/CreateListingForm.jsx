@@ -1,7 +1,9 @@
 import { useState } from "react";
+import { useAuth } from "../contexts/useAuth";
 import "./CreateListingForm.css"
 
 export default function CreateListingForm() {
+    const { currentUser } = useAuth();
     const [formData, setFormData] = useState({
         name: "",
         price: "",
@@ -11,35 +13,71 @@ export default function CreateListingForm() {
             make: "",
             model: "",
             type: "",
-            year: "",
+            year: ""
         },
         location: "",
         description: "",
-        images: [], // 3-4 images (?)
+        images: [],
     });
 
-    // Handle text input changes
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setFormData({ ...formData, [name]: value });
+        if (["engine", "make", "model", "type", "year"].includes(name)) { // for nested category fields
+            setFormData({
+                ...formData,
+                category: { ...formData.category, [name]: value }
+            });
+        } else {
+            setFormData({ ...formData, [name]: value });
+        }
     };
 
-    // Handle image uploads
     const handleImageChange = (e) => {
-        setFormData({ ...formData, images: [...e.target.files] });
+        setFormData({ ...formData, images: Array.from(e.target.files) });
     };
 
-    // Handle form submission
-    // TODO: Backend integration to save to database, POST request
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
 
-        console.log("Form submitted:", formData);
+        try {
+            const token = await currentUser.getIdToken(); // Firebase ID token
+
+            const data = new FormData();
+            data.append("name", formData.name);
+            data.append("price", formData.price);
+            data.append("condition", formData.condition);
+            data.append("location", formData.location);
+            data.append("description", formData.description);
+            data.append("category", JSON.stringify(formData.category));
+
+            formData.images.forEach((file) => {
+                data.append("images", file);
+            });
+
+            const response = await fetch("http://localhost:3000/api/listings", {
+                method: "POST",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+                body: data,
+            });
+
+            const result = await response.json();
+            console.log("Listing created:", result);
+            alert("Listing successfully created!");
+        } catch (err) {
+            console.error("Error:", err);
+            alert("Failed to create listing");
+        }
     };
+
+    if (!currentUser) {
+        alert("You must be logged in to create a listing");
+        return;
+    }
 
     return (
         <div className="create-listing-container">
-            <h2>Create New Listing</h2>
             <form onSubmit={handleSubmit}>
                 <label>
                     <p>Listing Name:</p>
