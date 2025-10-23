@@ -1,12 +1,12 @@
+// Create new listing
 export async function createListing(listingData, token) {
   try {
-    const response = await fetch("/api/listings", {
+    const response = await fetch("http://localhost:3000/api/listings", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
         Authorization: `Bearer ${token}`, // for protected route
       },
-      body: JSON.stringify(listingData),
+      body: listingData,
     });
 
     if (!response.ok) {
@@ -17,6 +17,26 @@ export async function createListing(listingData, token) {
     return data;
   } catch (err) {
     console.error("Error creating listing:", err);
+    throw err;
+  }
+}
+
+// Fetch all listings
+export async function fetchListings() {
+  try {
+    const response = await fetch("http://localhost:3000/api/listings", {
+      method: "GET",
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || "Failed to fetch listings");
+    }
+
+    const listings = await response.json();
+    return listings;
+  } catch (err) {
+    console.error("Error fetching listings:", err);
     throw err;
   }
 }

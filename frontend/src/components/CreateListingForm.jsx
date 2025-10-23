@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "../contexts/useAuth";
 import "./CreateListingForm.css"
+import { createListing } from "../services/listingService";
 
 export default function CreateListingForm() {
     const { currentUser } = useAuth();
@@ -54,15 +55,7 @@ export default function CreateListingForm() {
                 data.append("images", file);
             });
 
-            const response = await fetch("http://localhost:3000/api/listings", {
-                method: "POST",
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-                body: data,
-            });
-
-            const result = await response.json();
+            const result = await createListing(data, token);
             console.log("Listing created:", result);
             alert("Listing successfully created!");
 
