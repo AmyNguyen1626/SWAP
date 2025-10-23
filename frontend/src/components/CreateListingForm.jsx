@@ -5,7 +5,7 @@ import "./CreateListingForm.css"
 export default function CreateListingForm() {
     const { currentUser } = useAuth();
     const [formData, setFormData] = useState({
-        name: "",
+        listingName: "",
         price: "",
         condition: "",
         category: {
@@ -43,7 +43,7 @@ export default function CreateListingForm() {
             const token = await currentUser.getIdToken(); // Firebase ID token
 
             const data = new FormData();
-            data.append("name", formData.name);
+            data.append("listingName", formData.listingName);
             data.append("price", formData.price);
             data.append("condition", formData.condition);
             data.append("location", formData.location);
@@ -65,6 +65,25 @@ export default function CreateListingForm() {
             const result = await response.json();
             console.log("Listing created:", result);
             alert("Listing successfully created!");
+
+            // Clear form
+            setFormData({
+                listingName: "",
+                price: "",
+                condition: "",
+                category: {
+                    engine: "",
+                    make: "",
+                    model: "",
+                    type: "",
+                    year: ""
+                },
+                location: "",
+                description: "",
+                images: [],
+            });
+            document.getElementById("fileInput").value = null;
+
         } catch (err) {
             console.error("Error:", err);
             alert("Failed to create listing");
@@ -81,7 +100,7 @@ export default function CreateListingForm() {
             <form onSubmit={handleSubmit}>
                 <label>
                     <p>Listing Name:</p>
-                    <input type="text" name="name" placeholder="Name" value={formData.name} onChange={handleChange} required />
+                    <input type="text" name="listingName" placeholder="Listing Name" value={formData.listingName} onChange={handleChange} required />
                 </label>
 
                 <label>
