@@ -36,13 +36,13 @@ function uploadToCloudinary(filePath) {
 router.post("/", verifyToken, upload.array("images", 4), async (req, res) => {
     // req.user populated by verifyToken middleware (decoded token)
     try {
-        const { name, price, condition, location, description } = req.body;
+        const { listingName, price, condition, location, description } = req.body;
         const category = req.body.category ? JSON.parse(req.body.category) : null;
 
         // Check required fields
-        if (!name || !price || !condition || !location) {
+        if (!listingName || !price || !condition || !location) {
             req.files?.forEach(f => fs.unlinkSync(f.path));
-            return res.status(400).json({ error: "Missing required fields (name, price, condition, location)" });
+            return res.status(400).json({ error: "Missing required fields (listingName, price, condition, location)" });
         }
 
         if (!req.files || req.files.length === 0) {
@@ -62,14 +62,15 @@ router.post("/", verifyToken, upload.array("images", 4), async (req, res) => {
 
         // Build listing object
         const listing = {
-            name,
+            listingName,
             price: Number(price),
             condition,
             location,
             description: description || "",
             category: category || {},
             images: imageUrls,
-            ownerId: req.user.uid || req.user.claims?.user_id || req.user.user_id, // whichever decoded token exposes
+            status: "active",
+            userId: req.user.uid || req.user.claims?.user_id || req.user.user_id, // whichever decoded token exposes
             createdAt: new Date().toISOString(),
         };
 

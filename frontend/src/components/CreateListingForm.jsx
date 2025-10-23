@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { useAuth } from "../contexts/useAuth";
 import "./CreateListingForm.css"
+import { createListing } from "../services/listingService";
 
 export default function CreateListingForm() {
     const { currentUser } = useAuth();
     const [formData, setFormData] = useState({
-        name: "",
+        listingName: "",
         price: "",
         condition: "",
         category: {
@@ -43,7 +44,7 @@ export default function CreateListingForm() {
             const token = await currentUser.getIdToken(); // Firebase ID token
 
             const data = new FormData();
-            data.append("name", formData.name);
+            data.append("listingName", formData.listingName);
             data.append("price", formData.price);
             data.append("condition", formData.condition);
             data.append("location", formData.location);
@@ -54,17 +55,28 @@ export default function CreateListingForm() {
                 data.append("images", file);
             });
 
-            const response = await fetch("http://localhost:3000/api/listings", {
-                method: "POST",
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-                body: data,
-            });
-
-            const result = await response.json();
+            const result = await createListing(data, token);
             console.log("Listing created:", result);
             alert("Listing successfully created!");
+
+            // Clear form
+            setFormData({
+                listingName: "",
+                price: "",
+                condition: "",
+                category: {
+                    engine: "",
+                    make: "",
+                    model: "",
+                    type: "",
+                    year: ""
+                },
+                location: "",
+                description: "",
+                images: [],
+            });
+            document.getElementById("fileInput").value = null;
+
         } catch (err) {
             console.error("Error:", err);
             alert("Failed to create listing");
@@ -81,7 +93,7 @@ export default function CreateListingForm() {
             <form onSubmit={handleSubmit}>
                 <label>
                     <p>Listing Name:</p>
-                    <input type="text" name="name" placeholder="Name" value={formData.name} onChange={handleChange} required />
+                    <input type="text" name="listingName" placeholder="Listing Name" value={formData.listingName} onChange={handleChange} required />
                 </label>
 
                 <label>

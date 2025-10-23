@@ -3,7 +3,7 @@ import Navbar from "./components/Navbar.jsx";
 import Home from "./pages/Home.jsx";
 import AboutUs from "./pages/AboutUs.jsx";
 import Profile from "./pages/Profile.jsx";
-import Browse from "./pages/browse.jsx";
+import Browse from "./pages/Browse.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import Login from "./components/Login.jsx";
 import Register from "./components/Register.jsx";
