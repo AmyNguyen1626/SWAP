@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { getIdToken } from "firebase/auth";
 import { useAuth } from "../contexts/useAuth";
+import "./profile.css";
 
 export default function Profile() {
     const { currentUser } = useAuth();
@@ -33,13 +34,14 @@ export default function Profile() {
     }, [currentUser]);
 
     return (
-        <div>
-            <h1>Profile Page</h1>
-            {error && <p style={{ color: "red" }}>{error}</p>}
+        <div className="profile-container">
+            <h1 className="profile-header">Profile</h1>
+            {error && <p className="error-message">{error}</p>}
             {profile ? (
-                <p>Hello, {profile.email}!</p>
+                <p className="profile-info">Hello, {profile.email}!</p>
             ) : (
                 <p>Loading profile...</p>
+            
             )}
         </div>
     );
