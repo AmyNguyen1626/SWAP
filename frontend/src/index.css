@@ -61,7 +61,7 @@ input:focus {
 
 /* Button */
 button {
-    width: 60%;
+    width: 300px;
     padding: 12px;
     background-color: #054341;
     font-size: 1rem;

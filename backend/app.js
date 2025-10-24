@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 var createError = require('http-errors');
 var express = require('express');
 var path = require('path');
@@ -7,6 +9,7 @@ var cors = require('cors');
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
+var listingsRouter = require('./routes/listings');
 
 var app = express();
 
@@ -28,6 +31,9 @@ app.get("/", (req, res) => {
 
 // Users routes
 app.use("/users", usersRouter);
+
+// Listings routes (protected)
+app.use("/api/listings", listingsRouter);
 
 // catch 404
 app.use((req, res, next) => {

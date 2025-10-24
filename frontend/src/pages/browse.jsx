@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { getAllListings } from "../services/firestoreService";
+// import { getAllListings } from "../services/firestoreService";
+import { fetchListings } from "../services/listingService";
 import ListingCard from "../components/ListingCard";
 import "./Browse.css";
 
@@ -10,19 +11,20 @@ export default function Browse() {
     const [searchQuery, setSearchQuery] = useState("");
 
     useEffect(() => {
-        async function fetchListings() {
+        async function getAllListings() {
             setLoading(true);
-            const result = await getAllListings();
-            
-            if (result.success) {
-                setListings(result.listings);
-            } else {
-                setError(result.error);
+            const result = await fetchListings();
+            try {
+                const result = await fetchListings();
+                setListings(result); 
+            } catch (err) {
+                setError(err.message);
+            } finally {
+                setLoading(false);
             }
-            setLoading(false);
         }
 
-        fetchListings();
+        getAllListings();
     }, []);
 
     // Filter listings based on search query
