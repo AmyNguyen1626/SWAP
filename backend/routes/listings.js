@@ -33,7 +33,7 @@ function uploadToCloudinary(filePath) {
 
 // POST /api/listings
 // Protected route: verifyToken middleware ensures req.user exists
-router.post("/", verifyToken, upload.array("images", 4), async (req, res) => {
+router.post("/", verifyToken, upload.array("images", 10), async (req, res) => {
     // req.user populated by verifyToken middleware (decoded token)
     try {
         const { listingName, price, condition, location, description } = req.body;
