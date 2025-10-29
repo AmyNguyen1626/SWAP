@@ -102,4 +102,21 @@ router.get("/", async (req, res) => {
   }
 });
 
+// GET single listing by ID
+router.get("/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const doc = await db.collection("listings").doc(id).get();
+    
+    if (!doc.exists) {
+      return res.status(404).json({ error: "Listing not found" });
+    }
+    
+    res.json({ id: doc.id, ...doc.data() });
+  } catch (err) {
+    console.error("Error fetching listing:", err);
+    res.status(500).json({ error: "Failed to fetch listing" });
+  }
+});
+
 module.exports = router;
