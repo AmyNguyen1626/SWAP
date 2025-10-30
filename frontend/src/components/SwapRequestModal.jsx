@@ -2,12 +2,13 @@ import { useState, useEffect } from "react";
 import { getIdToken } from "firebase/auth";
 import { useAuth } from "../contexts/useAuth";
 import "./SwapRequestModal.css";
+import { createConversation } from "../services/messageService";
 
-export default function SwapRequestModal({ 
-    targetListing, 
-    isOpen, 
-    onClose, 
-    onSuccess 
+export default function SwapRequestModal({
+    targetListing,
+    isOpen,
+    onClose,
+    onSuccess
 }) {
     const { currentUser } = useAuth();
     const [requestType, setRequestType] = useState("buy"); // 'buy' or 'swap'
@@ -74,6 +75,7 @@ export default function SwapRequestModal({
                 requestData.offeredListingId = selectedListingId;
             }
 
+            // Send swap/buy request
             const res = await fetch("http://localhost:3000/api/swap-requests", {
                 method: "POST",
                 headers: {
@@ -88,10 +90,24 @@ export default function SwapRequestModal({
                 throw new Error(errorData.error || "Failed to send request");
             }
 
+            // Create conversation
+            const participants = [targetListing.userId, currentUser.uid];
+            const initialMsg = message.trim() || "";
+
+            await createConversation(
+                {
+                    id: targetListing.id,
+                    listingName: targetListing.listingName
+                },
+                participants,
+                token,
+                initialMsg
+            );
+
             // Success
             if (onSuccess) onSuccess();
             onClose();
-            
+
             // Reset form
             setRequestType("buy");
             setMessage("");
@@ -191,15 +207,15 @@ export default function SwapRequestModal({
                     {error && <p className="error-message">{error}</p>}
 
                     <div className="modal-actions">
-                        <button 
-                            type="submit" 
+                        <button
+                            type="submit"
                             className="submit-btn"
                             disabled={loading || (requestType === "swap" && myListings.length === 0)}
                         >
                             {loading ? "Sending..." : "Send Request"}
                         </button>
-                        <button 
-                            type="button" 
+                        <button
+                            type="button"
                             className="cancel-btn"
                             onClick={handleClose}
                             disabled={loading}
