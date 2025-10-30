@@ -244,7 +244,7 @@ export default function CreateListingForm() {
                                     <input
                                         type="text"
                                         name="price"
-                                        placeholder="12,000"
+                                        placeholder="e.g. 12,500"
                                         value={formatPrice(formData.price)}
                                         onChange={handleChange}
                                         className="price-input"

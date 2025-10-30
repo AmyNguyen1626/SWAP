@@ -1,14 +1,21 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { getIdToken } from "firebase/auth";
+import { useAuth } from "../contexts/useAuth";
+import SwapRequestModal from "../components/SwapRequestModal";
 import "./ListingDetail.css";
 
 export default function ListingDetail() {
     const { id } = useParams();
     const navigate = useNavigate();
+    const { currentUser } = useAuth();
     const [listing, setListing] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+    const [showSwapModal, setShowSwapModal] = useState(false);
+    const [isInWishlist, setIsInWishlist] = useState(false);
+    const [wishlistLoading, setWishlistLoading] = useState(false);
 
     useEffect(() => {
         async function fetchListing() {
@@ -22,6 +29,11 @@ export default function ListingDetail() {
                 
                 const data = await response.json();
                 setListing(data);
+
+                // Check if in wishlist (only if user is logged in)
+                if (currentUser) {
+                    checkWishlistStatus();
+                }
             } catch (err) {
                 setError(err.message);
             } finally {
@@ -30,7 +42,92 @@ export default function ListingDetail() {
         }
 
         fetchListing();
-    }, [id]);
+    }, [id, currentUser]);
+
+    async function checkWishlistStatus() {
+        if (!currentUser) return;
+
+        try {
+            const token = await getIdToken(currentUser);
+            const response = await fetch(`http://localhost:3000/api/wishlist/check/${id}`, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                setIsInWishlist(data.inWishlist);
+            }
+        } catch (err) {
+            console.error("Error checking wishlist status:", err);
+        }
+    }
+
+    async function handleToggleWishlist() {
+        if (!currentUser) {
+            alert("Please log in to save listings");
+            navigate("/login");
+            return;
+        }
+
+        setWishlistLoading(true);
+
+        try {
+            const token = await getIdToken(currentUser);
+
+            if (isInWishlist) {
+                // Remove from wishlist
+                const response = await fetch(`http://localhost:3000/api/wishlist/listing/${id}`, {
+                    method: "DELETE",
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                });
+
+                if (!response.ok) throw new Error("Failed to remove from wishlist");
+                setIsInWishlist(false);
+            } else {
+                // Add to wishlist
+                const response = await fetch("http://localhost:3000/api/wishlist", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({ listingId: id }),
+                });
+
+                if (!response.ok) throw new Error("Failed to add to wishlist");
+                setIsInWishlist(true);
+            }
+        } catch (err) {
+            console.error("Error toggling wishlist:", err);
+            alert("Failed to update wishlist: " + err.message);
+        } finally {
+            setWishlistLoading(false);
+        }
+    }
+
+    function handleRequestClick() {
+        if (!currentUser) {
+            alert("Please log in to request listings");
+            navigate("/login");
+            return;
+        }
+
+        // Check if trying to request own listing
+        if (listing.userId === currentUser.uid) {
+            alert("You cannot request your own listing");
+            return;
+        }
+
+        setShowSwapModal(true);
+    }
+
+    function handleRequestSuccess() {
+        alert("Request sent successfully! Check your profile to track it.");
+    }
 
     if (loading) {
         return (
@@ -58,6 +155,8 @@ export default function ListingDetail() {
         category.driveType,
         category.bodyType,
     ].filter(Boolean).join(" • ");
+
+    const isOwnListing = currentUser && listing.userId === currentUser.uid;
 
     return (
         <div className="listing-detail-container">
@@ -103,6 +202,9 @@ export default function ListingDetail() {
                         <h1 className="listing-title">{mainTitle}</h1>
                         <p className="listing-specs">{specs}</p>
                         <p className="listing-price">${Number(listing.price).toLocaleString()}</p>
+                        {isOwnListing && (
+                            <span className="own-listing-badge">Your Listing</span>
+                        )}
                     </div>
 
                     {/* Key Specs Grid */}
@@ -148,12 +250,52 @@ export default function ListingDetail() {
                     </div>
 
                     {/* Action Buttons */}
-                    <div className="action-buttons">
-                        <button className="contact-button">Contact Seller</button>
-                        <button className="save-button">Save Listing</button>
-                    </div>
+                    {!isOwnListing && (
+                        <div className="action-buttons">
+                            <button 
+                                className="contact-button primary"
+                                onClick={handleRequestClick}
+                            >
+                                Request Swap or Buy
+                            </button>
+                            <button 
+                                className={`save-button ${isInWishlist ? 'saved' : ''}`}
+                                onClick={handleToggleWishlist}
+                                disabled={wishlistLoading}
+                            >
+                                {wishlistLoading ? "..." : isInWishlist ? "❤️ Saved" : "🤍 Save Listing"}
+                            </button>
+                        </div>
+                    )}
+
+                    {isOwnListing && (
+                        <div className="action-buttons">
+                            <button 
+                                className="edit-button"
+                                onClick={() => navigate(`/listing/${id}/edit`)}
+                            >
+                                Edit Listing
+                            </button>
+                            <button 
+                                className="view-requests-button"
+                                onClick={() => navigate("/profile", { state: { activeTab: "received-requests" } })}
+                            >
+                                View Requests
+                            </button>
+                        </div>
+                    )}
                 </div>
             </div>
+
+            {/* Swap Request Modal */}
+            {showSwapModal && (
+                <SwapRequestModal
+                    targetListing={listing}
+                    isOpen={showSwapModal}
+                    onClose={() => setShowSwapModal(false)}
+                    onSuccess={handleRequestSuccess}
+                />
+            )}
         </div>
     );
 }

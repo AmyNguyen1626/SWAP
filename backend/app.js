@@ -10,6 +10,8 @@ var cors = require('cors');
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var listingsRouter = require('./routes/listings');
+var swapRequestsRouter = require('./routes/swapRequests');
+var wishlistRouter = require('./routes/wishlist');
 
 var app = express();
 
@@ -34,6 +36,12 @@ app.use("/users", usersRouter);
 
 // Listings routes (protected)
 app.use("/api/listings", listingsRouter);
+
+// Swap requests routes (protected)
+app.use("/api/swap-requests", swapRequestsRouter);
+
+// Wishlist routes (protected)
+app.use("/api/wishlist", wishlistRouter);
 
 // catch 404
 app.use((req, res, next) => {
