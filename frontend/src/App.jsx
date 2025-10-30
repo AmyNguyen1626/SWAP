@@ -9,7 +9,7 @@ import Login from "./components/Login.jsx";
 import Register from "./components/Register.jsx";
 import CreateListingPage from "./pages/CreateListingPage.jsx";
 import ListingDetail from "./pages/ListingDetail.jsx";
-
+import ChatPage from "./pages/ChatPage.jsx";
 
 function App() {
   return (
@@ -38,6 +38,14 @@ function App() {
           element={
             <ProtectedRoute>
               <CreateListingPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/chat"
+          element={
+            <ProtectedRoute>
+              <ChatPage />
             </ProtectedRoute>
           }
         />

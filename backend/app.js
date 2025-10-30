@@ -12,6 +12,7 @@ var usersRouter = require('./routes/users');
 var listingsRouter = require('./routes/listings');
 var swapRequestsRouter = require('./routes/swapRequests');
 var wishlistRouter = require('./routes/wishlist');
+var conversationsRouter = require('./routes/conversations');
 
 var app = express();
 
@@ -42,6 +43,9 @@ app.use("/api/swap-requests", swapRequestsRouter);
 
 // Wishlist routes (protected)
 app.use("/api/wishlist", wishlistRouter);
+
+// Messages routes (protected)
+app.use("/api/conversations", conversationsRouter)
 
 // catch 404
 app.use((req, res, next) => {
