@@ -14,7 +14,7 @@ export default function ListingCard({ id, image, name, condition, location, pric
       <div className="listing-info">
         <h3 className="listing-name">{name}</h3>
         <p className="listing-location">{location}</p>
-        <p className="listing-location">${Number(price).toLocaleString()}</p>
+        <p className="listing-price">${Number(price).toLocaleString()}</p>
       </div>
     </div>
   );

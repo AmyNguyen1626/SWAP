@@ -12,36 +12,42 @@ export default function Home() {
             name: "Ford Mustang Coupe",
             condition: "Very Good",
             location: "Melbourne, VIC",
+            price: "26400"
         },
         {
             image: "/assets/hyundai-santafe.png",
             name: "Hyundai Santa Fe",
             condition: "Excellent",
             location: "Brisbane, QLD",
+            price: "32100"
         },
         {
             image: "/assets/jeep-wrangler.png",
             name: "Jeep Wrangler",
             condition: "Good",
             location: "Adelaide, SA",
+            price: "49000"
         },
         {
             image: "/assets/mitsubishi-evo.png",
             name: "Mitsubishi Lancer Evo",
             condition: "Very Good",
             location: "Sydney, NSW",
+            price: "28400"
         },
         {
             image: "/assets/nissan-silvia.png",
             name: "Nissan Silvia S15",
             condition: "Excellent",
             location: "Perth, WA",
+            price: "36000"
         },
         {
             image: "/assets/toyota-trueno.png",
             name: "Toyota AE86 Trueno",
             condition: "Fair",
             location: "Canberra, ACT",
+            price: "14000"
         },
     ];
 
