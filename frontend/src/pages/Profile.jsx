@@ -28,6 +28,11 @@ export default function Profile() {
     const [selectedRequest, setSelectedRequest] = useState(null);
     const [contactInfo, setContactInfo] = useState({ email: "", phone: "" });
 
+    // Navigate to listing details
+    const navigateToListing = (listingId) => {
+        navigate(`/listing/${listingId}`);
+    };
+
     useEffect(() => {
         async function fetchProfile() {
             try {
@@ -168,11 +173,6 @@ export default function Profile() {
         }
     }
 
-    // Function to navigate to the listing detail page
-    const navigateToListing = (listingId) => {
-        navigate(`/listing/${listingId}`);
-    };
-
     function handleAcceptRequest(request) {
         setSelectedRequest(request);
         setShowContactModal(true);
@@ -180,27 +180,39 @@ export default function Profile() {
 
     async function confirmAcceptRequest() {
         if (!selectedRequest || !contactInfo.email) return;
+        
         try {
             const token = await getIdToken(currentUser);
-            const res = await fetch(`http://localhost:3000/api/swap-requests/${selectedRequest.id}/accept`, {
-                method: "POST",
+            
+            // Use the correctly structured endpoint
+            const response = await fetch(`http://localhost:3000/api/swap-requests/${selectedRequest.id}/accept`, {
+                method: 'POST',
                 headers: {
-                    "Content-Type": "application/json",
+                    'Content-Type': 'application/json',
                     Authorization: `Bearer ${token}`,
                 },
                 body: JSON.stringify({ contactInfo }),
             });
-            if (!res.ok) throw new Error("Failed to accept request");
-
+            
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || "Failed to accept request");
+            }
+            
             // Update received requests status locally
             const updatedRequests = receivedRequests.map(req => 
-                req.id === selectedRequest.id ? { ...req, status: "accepted" } : req
+                req.id === selectedRequest.id ? { ...req, status: "accepted", contactInfo } : req
             );
+            
             setReceivedRequests(updatedRequests);
             setShowContactModal(false);
+            
+            // Show success message
+            alert("Request accepted successfully!");
+            
         } catch (err) {
             console.error("Error accepting request:", err);
-            alert("Failed to accept request");
+            alert(`Error accepting request: ${err.message}`);
         }
     }
 
@@ -208,20 +220,34 @@ export default function Profile() {
         if (!confirm("Are you sure you want to reject this request?")) return;
         try {
             const token = await getIdToken(currentUser);
-            const res = await fetch(`http://localhost:3000/api/swap-requests/${requestId}/reject`, {
-                method: "POST",
-                headers: { Authorization: `Bearer ${token}` },
+            
+            // Use the correctly structured endpoint
+            const response = await fetch(`http://localhost:3000/api/swap-requests/${requestId}/reject`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
             });
-            if (!res.ok) throw new Error("Failed to reject request");
+            
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || "Failed to reject request");
+            }
             
             // Update received requests status locally
             const updatedRequests = receivedRequests.map(req => 
                 req.id === requestId ? { ...req, status: "rejected" } : req
             );
+            
             setReceivedRequests(updatedRequests);
+            
+            // Show success message
+            alert("Request rejected successfully");
+            
         } catch (err) {
             console.error("Error rejecting request:", err);
-            alert("Failed to reject request");
+            alert(`Error rejecting request: ${err.message}`);
         }
     }
 
@@ -229,90 +255,39 @@ export default function Profile() {
         if (!confirm("Are you sure you want to cancel this request?")) return;
         try {
             const token = await getIdToken(currentUser);
-            const res = await fetch(`http://localhost:3000/api/swap-requests/${requestId}`, {
-                method: "DELETE",
-                headers: { Authorization: `Bearer ${token}` },
-            });
-            if (!res.ok) throw new Error("Failed to cancel request");
             
-            // Remove request from the list
+            const response = await fetch(`http://localhost:3000/api/swap-requests/${requestId}`, {
+                method: 'DELETE',
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+            
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || "Failed to cancel request");
+            }
+            
+            // Remove the request from the list
             setSentRequests(sentRequests.filter(req => req.id !== requestId));
+            
+            // Show success message
+            alert("Request cancelled successfully");
+            
         } catch (err) {
-            console.error("Error canceling request:", err);
-            alert("Failed to cancel request");
+            console.error("Error cancelling request:", err);
+            alert(`Error cancelling request: ${err.message}`);
         }
+    }
+
+    if (loading) {
+        return <div className="loading">Loading profile...</div>;
+    }
+
+    if (error) {
+        return <div className="error">Error: {error}</div>;
     }
     
-    async function handleAcceptRequest(request) {
-        setSelectedRequest(request);
-        setShowContactModal(true);
-    }
-
-    async function confirmAcceptRequest() {
-        if (!contactInfo.email) {
-            alert("Please provide at least an email address");
-            return;
-        }
-        try {
-            const token = await getIdToken(currentUser);
-            const res = await fetch(`http://localhost:3000/api/swap-requests/${selectedRequest.id}/accept`, {
-                method: "POST",
-                headers: {
-                    "Authorization": `Bearer ${token}`,
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ contactInfo }),
-            });
-            if (!res.ok) throw new Error("Failed to accept request");
-            setReceivedRequests(receivedRequests.map(req => 
-                req.id === selectedRequest.id ? { ...req, status: "accepted" } : req
-            ));
-            setShowContactModal(false);
-            setSelectedRequest(null);
-        } catch (err) {
-            console.error("Error accepting request:", err);
-            alert("Failed to accept request");
-        }
-    }
-
-    async function handleRejectRequest(requestId) {
-        if (!confirm("Are you sure you want to reject this request?")) return;
-        try {
-            const token = await getIdToken(currentUser);
-            const res = await fetch(`http://localhost:3000/api/swap-requests/${requestId}/reject`, {
-                method: "POST",
-                headers: { Authorization: `Bearer ${token}` },
-            });
-            if (!res.ok) throw new Error("Failed to reject request");
-            setReceivedRequests(receivedRequests.map(req => 
-                req.id === requestId ? { ...req, status: "rejected" } : req
-            ));
-        } catch (err) {
-            console.error("Error rejecting request:", err);
-            alert("Failed to reject request");
-        }
-    }
-
-    async function handleCancelRequest(requestId) {
-        if (!confirm("Are you sure you want to cancel this request?")) return;
-        try {
-            const token = await getIdToken(currentUser);
-            const res = await fetch(`http://localhost:3000/api/swap-requests/${requestId}`, {
-                method: "DELETE",
-                headers: { Authorization: `Bearer ${token}` },
-            });
-            if (!res.ok) throw new Error("Failed to cancel request");
-            setSentRequests(sentRequests.filter(req => req.id !== requestId));
-        } catch (err) {
-            console.error("Error canceling request:", err);
-            alert("Failed to cancel request");
-        }
-    }
-
-    if (loading) return <div className="profile-container"><p>Loading...</p></div>;
-    if (error) return <div className="profile-container"><p className="error-message">{error}</p></div>;
-    if (!profile) return <div className="profile-container"><p>No profile found</p></div>;
-
     return (
         <div className="profile-container">
             <div className="profile-header-section">

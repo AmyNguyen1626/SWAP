@@ -471,26 +471,19 @@
     transition: all 0.3s;
 }
 
-.accept-btn {
-    background-color: #054341;
-    color: white;
-    flex: 1;
-}
-
-.accept-btn:hover {
-    background-color: #6ca39f;
-    border: 2px solid #054341;
-}
-
 .reject-btn,
-.cancel-btn {
+.cancel-btn,
+.accept-btn,
+.confirm-btn {
     background-color: #7ab0ae;
     color: white;
     flex: 1;
 }
 
 .reject-btn:hover,
-.cancel-btn:hover {
+.cancel-btn:hover,
+.accept-btn:hover,
+.confirm-btn:hover {
     background-color: #054341;
 }
 
@@ -561,16 +554,6 @@
     font-size: 1rem;
     font-weight: 600;
     transition: all 0.3s;
-}
-
-.confirm-btn {
-    background-color: #054341;
-    color: white;
-}
-
-.confirm-btn:hover {
-    background-color: #6ca39f;
-    border: 2px solid #054341;
 }
 
 .cancel-modal-btn {

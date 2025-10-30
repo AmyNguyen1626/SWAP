@@ -10,20 +10,26 @@ export default function Browse() {
     const [searchQuery, setSearchQuery] = useState("");
 
     useEffect(() => {
-        async function getAllListings() {
-            setLoading(true);
-            try {
-                const result = await fetchListings();
-                setListings(result); 
-            } catch (err) {
-                setError(err.message);
-            } finally {
-                setLoading(false);
-            }
+    async function getAllListings() {
+        setLoading(true);
+        try {
+            const result = await fetchListings();
+            
+            // Filter out non-active listings
+            const activeListings = result.filter(listing => 
+                listing.status === "active" || !listing.status
+            );
+            
+            setListings(activeListings); 
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
         }
+    }
 
-        getAllListings();
-    }, []);
+    getAllListings();
+}, []);
 
     // Filter listings based on search query
     const filteredListings = listings.filter((listing) => {

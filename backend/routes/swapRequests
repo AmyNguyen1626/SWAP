@@ -5,232 +5,314 @@ const { verifyToken } = require("../middleware/authMiddleware");
 const router = express.Router();
 const db = getFirestore();
 
-// Create a swap request
-// POST /api/swap-requests
+// POST create a swap request
 router.post("/", verifyToken, async (req, res) => {
-    try {
-        const { 
-            targetListingId, 
-            offeredListingId, 
-            requestType, // 'swap' or 'buy'
-            message 
-        } = req.body;
-
-        const userId = req.user.uid || req.user.claims?.user_id || req.user.user_id;
-
-        if (!targetListingId || !requestType) {
-            return res.status(400).json({ 
-                error: "Missing required fields (targetListingId, requestType)" 
-            });
-        }
-
-        // If swap, offeredListingId is required
-        if (requestType === 'swap' && !offeredListingId) {
-            return res.status(400).json({ 
-                error: "Offered listing is required for swap requests" 
-            });
-        }
-
-        // Get target listing to find the owner
-        const targetListingDoc = await db.collection("listings").doc(targetListingId).get();
-        if (!targetListingDoc.exists) {
-            return res.status(404).json({ error: "Target listing not found" });
-        }
-
-        const targetListing = targetListingDoc.data();
-        const targetUserId = targetListing.userId;
-
-        // Prevent requesting own listings
-        if (targetUserId === userId) {
-            return res.status(400).json({ 
-                error: "You cannot request your own listing" 
-            });
-        }
-
-        // Build swap request object
-        const swapRequest = {
-            requesterId: userId,
-            targetUserId: targetUserId,
-            targetListingId,
-            offeredListingId: offeredListingId || null,
-            requestType,
-            message: message || "",
-            status: "pending", // pending, accepted, rejected, cancelled
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-        };
-
-        const docRef = await db.collection("swapRequests").add(swapRequest);
-
-        return res.status(201).json({ 
-            id: docRef.id, 
-            ...swapRequest 
-        });
-    } catch (err) {
-        console.error("Error creating swap request:", err);
-        return res.status(500).json({ 
-            error: "Failed to create swap request", 
-            details: err.message 
-        });
+  try {
+    const { targetListingId, offeredListingId, requestType, message } = req.body;
+    const userId = req.user.uid || req.user.claims?.user_id || req.user.user_id;
+    
+    // Validate request type
+    if (!["swap", "buy"].includes(requestType)) {
+      return res.status(400).json({ error: "Invalid request type. Must be 'swap' or 'buy'" });
     }
+    
+    // For 'swap' requests, offeredListingId is required
+    if (requestType === "swap" && !offeredListingId) {
+      return res.status(400).json({ error: "For swap requests, an offered listing ID is required" });
+    }
+    
+    if (!targetListingId) {
+      return res.status(400).json({ error: "Target listing ID is required" });
+    }
+    
+    // Get target listing to check if it exists and to get owner ID
+    const targetListingDoc = await db.collection("listings").doc(targetListingId).get();
+    if (!targetListingDoc.exists) {
+      return res.status(404).json({ error: "Target listing not found" });
+    }
+    
+    const targetListing = targetListingDoc.data();
+    const targetOwnerId = targetListing.userId;
+    
+    // User cannot request their own listing
+    if (targetOwnerId === userId) {
+      return res.status(400).json({ error: "Cannot create a request for your own listing" });
+    }
+    
+    // If it's a swap, validate the offered listing
+    let offeredListing = null;
+    if (requestType === "swap" && offeredListingId) {
+      const offeredListingDoc = await db.collection("listings").doc(offeredListingId).get();
+      
+      if (!offeredListingDoc.exists) {
+        return res.status(404).json({ error: "Offered listing not found" });
+      }
+      
+      offeredListing = offeredListingDoc.data();
+      
+      // Validate that the user owns the offered listing
+      if (offeredListing.userId !== userId) {
+        return res.status(403).json({ error: "You can only offer listings you own" });
+      }
+    }
+    
+    // Check if a similar request already exists
+    const existingRequestsSnapshot = await db.collection("swapRequests")
+      .where("senderId", "==", userId)
+      .where("targetListingId", "==", targetListingId)
+      .where("status", "==", "pending")
+      .get();
+    
+    if (!existingRequestsSnapshot.empty) {
+      return res.status(400).json({ error: "You already have a pending request for this listing" });
+    }
+    
+    // Create the swap request
+    const swapRequest = {
+      senderId: userId,
+      receiverId: targetOwnerId,
+      targetListingId,
+      offeredListingId: requestType === "swap" ? offeredListingId : null,
+      requestType,
+      message: message || "",
+      status: "pending",
+      createdAt: new Date().toISOString(),
+    };
+    
+    const docRef = await db.collection("swapRequests").add(swapRequest);
+    
+    return res.status(201).json({ id: docRef.id, ...swapRequest });
+    
+  } catch (err) {
+    console.error("Error creating swap request:", err);
+    return res.status(500).json({ error: "Failed to create swap request", details: err.message });
+  }
 });
 
-// Get swap requests sent by current user
-// GET /api/swap-requests/sent
-router.get("/sent", verifyToken, async (req, res) => {
-    try {
-        const userId = req.user.uid || req.user.claims?.user_id || req.user.user_id;
-
-        const snapshot = await db.collection("swapRequests")
-            .where("requesterId", "==", userId)
-            .orderBy("createdAt", "desc")
-            .get();
-
-        const requests = await Promise.all(snapshot.docs.map(async (doc) => {
-            const requestData = { id: doc.id, ...doc.data() };
-            
-            // Fetch target listing details
-            const targetListing = await db.collection("listings").doc(requestData.targetListingId).get();
-            requestData.targetListing = targetListing.exists ? { id: targetListing.id, ...targetListing.data() } : null;
-
-            // Fetch offered listing details if exists
-            if (requestData.offeredListingId) {
-                const offeredListing = await db.collection("listings").doc(requestData.offeredListingId).get();
-                requestData.offeredListing = offeredListing.exists ? { id: offeredListing.id, ...offeredListing.data() } : null;
-            }
-
-            return requestData;
-        }));
-
-        res.json(requests);
-    } catch (err) {
-        console.error("Error fetching sent requests:", err);
-        res.status(500).json({ error: "Failed to fetch sent requests" });
-    }
-});
-
-// Get swap requests received by current user
-// GET /api/swap-requests/received
+// GET all received swap requests
 router.get("/received", verifyToken, async (req, res) => {
-    try {
-        const userId = req.user.uid || req.user.claims?.user_id || req.user.user_id;
-
-        const snapshot = await db.collection("swapRequests")
-            .where("targetUserId", "==", userId)
-            .orderBy("createdAt", "desc")
-            .get();
-
-        const requests = await Promise.all(snapshot.docs.map(async (doc) => {
-            const requestData = { id: doc.id, ...doc.data() };
-            
-            // Fetch target listing details
-            const targetListing = await db.collection("listings").doc(requestData.targetListingId).get();
-            requestData.targetListing = targetListing.exists ? { id: targetListing.id, ...targetListing.data() } : null;
-
-            // Fetch offered listing details if exists
-            if (requestData.offeredListingId) {
-                const offeredListing = await db.collection("listings").doc(requestData.offeredListingId).get();
-                requestData.offeredListing = offeredListing.exists ? { id: offeredListing.id, ...offeredListing.data() } : null;
-            }
-
-            // Fetch requester info
-            const requesterDoc = await db.collection("users").doc(requestData.requesterId).get();
-            requestData.requester = requesterDoc.exists ? { id: requesterDoc.id, ...requesterDoc.data() } : null;
-
-            return requestData;
-        }));
-
-        res.json(requests);
-    } catch (err) {
-        console.error("Error fetching received requests:", err);
-        res.status(500).json({ error: "Failed to fetch received requests" });
+  try {
+    const userId = req.user.uid || req.user.claims?.user_id || req.user.user_id;
+    
+    // Get all requests where this user is the receiver
+    const snapshot = await db.collection("swapRequests")
+      .where("receiverId", "==", userId)
+      .orderBy("createdAt", "desc")
+      .get();
+    
+    const requests = [];
+    
+    // Process each request and populate listings data
+    for (const doc of snapshot.docs) {
+      const request = { id: doc.id, ...doc.data() };
+      
+      // Get target listing details
+      const targetListingDoc = await db.collection("listings").doc(request.targetListingId).get();
+      if (targetListingDoc.exists) {
+        request.targetListing = { id: targetListingDoc.id, ...targetListingDoc.data() };
+      }
+      
+      // If swap, get offered listing details
+      if (request.requestType === "swap" && request.offeredListingId) {
+        const offeredListingDoc = await db.collection("listings").doc(request.offeredListingId).get();
+        if (offeredListingDoc.exists) {
+          request.offeredListing = { id: offeredListingDoc.id, ...offeredListingDoc.data() };
+        }
+      }
+      
+      requests.push(request);
     }
+    
+    return res.json(requests);
+  } catch (err) {
+    console.error("Error fetching received requests:", err);
+    return res.status(500).json({ error: "Failed to fetch received requests", details: err.message });
+  }
 });
 
-// Update swap request status (accept/reject)
-// PATCH /api/swap-requests/:id
-router.patch("/:id", verifyToken, async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { status, contactInfo } = req.body;
-        const userId = req.user.uid || req.user.claims?.user_id || req.user.user_id;
-
-        if (!["accepted", "rejected", "cancelled"].includes(status)) {
-            return res.status(400).json({ 
-                error: "Invalid status. Must be 'accepted', 'rejected', or 'cancelled'" 
-            });
+// GET all sent swap requests
+router.get("/sent", verifyToken, async (req, res) => {
+  try {
+    const userId = req.user.uid || req.user.claims?.user_id || req.user.user_id;
+    
+    // Get all requests where this user is the sender
+    const snapshot = await db.collection("swapRequests")
+      .where("senderId", "==", userId)
+      .orderBy("createdAt", "desc")
+      .get();
+    
+    const requests = [];
+    
+    // Process each request and populate listings data
+    for (const doc of snapshot.docs) {
+      const request = { id: doc.id, ...doc.data() };
+      
+      // Get target listing details
+      const targetListingDoc = await db.collection("listings").doc(request.targetListingId).get();
+      if (targetListingDoc.exists) {
+        request.targetListing = { id: targetListingDoc.id, ...targetListingDoc.data() };
+      }
+      
+      // If swap, get offered listing details
+      if (request.requestType === "swap" && request.offeredListingId) {
+        const offeredListingDoc = await db.collection("listings").doc(request.offeredListingId).get();
+        if (offeredListingDoc.exists) {
+          request.offeredListing = { id: offeredListingDoc.id, ...offeredListingDoc.data() };
         }
-
-        const requestDoc = await db.collection("swapRequests").doc(id).get();
-        if (!requestDoc.exists) {
-            return res.status(404).json({ error: "Swap request not found" });
-        }
-
-        const requestData = requestDoc.data();
-
-        // Only target user can accept/reject, only requester can cancel
-        if (status === "cancelled" && requestData.requesterId !== userId) {
-            return res.status(403).json({ error: "Unauthorized to cancel this request" });
-        }
-        if ((status === "accepted" || status === "rejected") && requestData.targetUserId !== userId) {
-            return res.status(403).json({ error: "Unauthorized to update this request" });
-        }
-
-        const updateData = {
-            status,
-            updatedAt: new Date().toISOString()
-        };
-
-        // If accepting, store contact info
-        if (status === "accepted" && contactInfo) {
-            updateData.contactInfo = contactInfo;
-        }
-
-        await db.collection("swapRequests").doc(id).update(updateData);
-
-        res.json({ 
-            id, 
-            ...requestData, 
-            ...updateData 
-        });
-    } catch (err) {
-        console.error("Error updating swap request:", err);
-        res.status(500).json({ 
-            error: "Failed to update swap request", 
-            details: err.message 
-        });
+      }
+      
+      requests.push(request);
     }
+    
+    return res.json(requests);
+  } catch (err) {
+    console.error("Error fetching sent requests:", err);
+    return res.status(500).json({ error: "Failed to fetch sent requests", details: err.message });
+  }
 });
 
-// Delete/cancel a swap request
-// DELETE /api/swap-requests/:id
+// POST accept a swap request
+router.post("/:id/accept", verifyToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { contactInfo } = req.body;
+    const userId = req.user.uid || req.user.claims?.user_id || req.user.user_id;
+    
+    if (!contactInfo || !contactInfo.email) {
+      return res.status(400).json({ error: "Contact information with at least an email is required" });
+    }
+    
+    // Get the swap request
+    const requestDoc = await db.collection("swapRequests").doc(id).get();
+    
+    if (!requestDoc.exists) {
+      return res.status(404).json({ error: "Swap request not found" });
+    }
+    
+    const request = requestDoc.data();
+    
+    // Validate that the current user is the request receiver
+    if (request.receiverId !== userId) {
+      return res.status(403).json({ error: "Unauthorized. You can only accept requests sent to you" });
+    }
+    
+    // Check if the request is already accepted or rejected
+    if (request.status !== "pending") {
+      return res.status(400).json({ error: `This request has already been ${request.status}` });
+    }
+    
+    // Update the request status to accepted
+    await db.collection("swapRequests").doc(id).update({
+      status: "accepted",
+      contactInfo,
+      acceptedAt: new Date().toISOString()
+    });
+    
+    // Fetch the updated request
+    const updatedDoc = await db.collection("swapRequests").doc(id).get();
+    
+    // After updating the swap request status
+    await db.collection("swapRequests").doc(id).update({
+      status: "accepted",
+      contactInfo,
+      acceptedAt: new Date().toISOString()
+    });
+    
+    // ADDITION: Update the listing status to "reserved"
+    await db.collection("listings").doc(request.targetListingId).update({
+      status: "reserved",
+      updatedAt: new Date().toISOString()
+    });
+    
+    // If it's a swap request, also update the offered listing
+    if (request.requestType === "swap" && request.offeredListingId) {
+      await db.collection("listings").doc(request.offeredListingId).update({
+        status: "reserved", 
+        updatedAt: new Date().toISOString()
+      });
+    }
+
+    return res.json({ id, ...updatedDoc.data() });
+  } catch (err) {
+    console.error("Error accepting swap request:", err);
+    return res.status(500).json({ error: "Failed to accept swap request", details: err.message });
+  }
+});
+
+// POST reject a swap request
+router.post("/:id/reject", verifyToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.uid || req.user.claims?.user_id || req.user.user_id;
+    
+    // Get the swap request
+    const requestDoc = await db.collection("swapRequests").doc(id).get();
+    
+    if (!requestDoc.exists) {
+      return res.status(404).json({ error: "Swap request not found" });
+    }
+    
+    const request = requestDoc.data();
+    
+    // Validate that the current user is the request receiver
+    if (request.receiverId !== userId) {
+      return res.status(403).json({ error: "Unauthorized. You can only reject requests sent to you" });
+    }
+    
+    // Check if the request is already accepted or rejected
+    if (request.status !== "pending") {
+      return res.status(400).json({ error: `This request has already been ${request.status}` });
+    }
+    
+    // Update the request status to rejected
+    await db.collection("swapRequests").doc(id).update({
+      status: "rejected",
+      rejectedAt: new Date().toISOString()
+    });
+    
+    // Fetch the updated request
+    const updatedDoc = await db.collection("swapRequests").doc(id).get();
+    
+    return res.json({ id, ...updatedDoc.data() });
+  } catch (err) {
+    console.error("Error rejecting swap request:", err);
+    return res.status(500).json({ error: "Failed to reject swap request", details: err.message });
+  }
+});
+
+// DELETE a swap request (cancel)
 router.delete("/:id", verifyToken, async (req, res) => {
-    try {
-        const { id } = req.params;
-        const userId = req.user.uid || req.user.claims?.user_id || req.user.user_id;
-
-        const requestDoc = await db.collection("swapRequests").doc(id).get();
-        if (!requestDoc.exists) {
-            return res.status(404).json({ error: "Swap request not found" });
-        }
-
-        const requestData = requestDoc.data();
-
-        // Only requester can delete
-        if (requestData.requesterId !== userId) {
-            return res.status(403).json({ error: "Unauthorized to delete this request" });
-        }
-
-        await db.collection("swapRequests").doc(id).delete();
-
-        res.json({ message: "Swap request deleted successfully" });
-    } catch (err) {
-        console.error("Error deleting swap request:", err);
-        res.status(500).json({ 
-            error: "Failed to delete swap request", 
-            details: err.message 
-        });
+  try {
+    const { id } = req.params;
+    const userId = req.user.uid || req.user.claims?.user_id || req.user.user_id;
+    
+    // Get the swap request
+    const requestDoc = await db.collection("swapRequests").doc(id).get();
+    
+    if (!requestDoc.exists) {
+      return res.status(404).json({ error: "Swap request not found" });
     }
+    
+    const request = requestDoc.data();
+    
+    // Validate that the current user is the request sender
+    if (request.senderId !== userId) {
+      return res.status(403).json({ error: "Unauthorized. You can only cancel requests you sent" });
+    }
+    
+    // Check if the request is already accepted
+    if (request.status === "accepted") {
+      return res.status(400).json({ error: "Cannot cancel an already accepted request" });
+    }
+    
+    // Delete the swap request
+    await db.collection("swapRequests").doc(id).delete();
+    
+    return res.json({ message: "Swap request cancelled successfully" });
+  } catch (err) {
+    console.error("Error cancelling swap request:", err);
+    return res.status(500).json({ error: "Failed to cancel swap request", details: err.message });
+  }
 });
 
 module.exports = router;
