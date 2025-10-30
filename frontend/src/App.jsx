@@ -8,6 +8,8 @@ import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import Login from "./components/Login.jsx";
 import Register from "./components/Register.jsx";
 import CreateListingPage from "./pages/CreateListingPage.jsx";
+import ListingDetail from "./pages/ListingDetail.jsx";
+
 
 function App() {
   return (
@@ -20,6 +22,7 @@ function App() {
         <Route path="/browse" element={<Browse />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/listing/:id" element={<ListingDetail />} />
 
         {/* Protected routes */}
         <Route

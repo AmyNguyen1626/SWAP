@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-// import { getAllListings } from "../services/firestoreService";
 import { fetchListings } from "../services/listingService";
 import ListingCard from "../components/ListingCard";
 import "./Browse.css";
@@ -13,7 +12,6 @@ export default function Browse() {
     useEffect(() => {
         async function getAllListings() {
             setLoading(true);
-            const result = await fetchListings();
             try {
                 const result = await fetchListings();
                 setListings(result); 
@@ -81,8 +79,10 @@ export default function Browse() {
                     {filteredListings.map((listing) => (
                         <ListingCard
                             key={listing.id}
+                            id={listing.id}
                             image={listing.images && listing.images[0] ? listing.images[0] : "/assets/placeholder-car.png"}
                             name={listing.listingName}
+                            price={listing.price}
                             condition={listing.condition}
                             location={listing.location}
                         />

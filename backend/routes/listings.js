@@ -33,7 +33,7 @@ function uploadToCloudinary(filePath) {
 
 // POST /api/listings
 // Protected route: verifyToken middleware ensures req.user exists
-router.post("/", verifyToken, upload.array("images", 4), async (req, res) => {
+router.post("/", verifyToken, upload.array("images", 10), async (req, res) => {
     // req.user populated by verifyToken middleware (decoded token)
     try {
         const { listingName, price, condition, location, description } = req.body;
@@ -99,6 +99,100 @@ router.get("/", async (req, res) => {
   } catch (err) {
     console.error("Error fetching listings:", err);
     res.status(500).json({ error: "Failed to fetch listings" });
+  }
+});
+
+// GET current user's listings (must be before /:id to avoid route conflicts)
+router.get("/user/my-listings", verifyToken, async (req, res) => {
+  try {
+    const userId = req.user.uid || req.user.claims?.user_id || req.user.user_id;
+    
+    const snapshot = await db.collection("listings")
+      .where("userId", "==", userId)
+      .orderBy("createdAt", "desc")
+      .get();
+    
+    const listings = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    res.json(listings);
+  } catch (err) {
+    console.error("Error fetching user listings:", err);
+    res.status(500).json({ error: "Failed to fetch user listings" });
+  }
+});
+
+// GET single listing by ID
+router.get("/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const doc = await db.collection("listings").doc(id).get();
+    
+    if (!doc.exists) {
+      return res.status(404).json({ error: "Listing not found" });
+    }
+    
+    res.json({ id: doc.id, ...doc.data() });
+  } catch (err) {
+    console.error("Error fetching listing:", err);
+    res.status(500).json({ error: "Failed to fetch listing" });
+  }
+});
+
+// UPDATE listing
+router.patch("/:id", verifyToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.uid || req.user.claims?.user_id || req.user.user_id;
+    const updates = req.body;
+
+    // Get the listing to check ownership
+    const listingDoc = await db.collection("listings").doc(id).get();
+    if (!listingDoc.exists) {
+      return res.status(404).json({ error: "Listing not found" });
+    }
+
+    const listingData = listingDoc.data();
+    if (listingData.userId !== userId) {
+      return res.status(403).json({ error: "Unauthorized to update this listing" });
+    }
+
+    // Update the listing
+    await db.collection("listings").doc(id).update({
+      ...updates,
+      updatedAt: new Date().toISOString()
+    });
+
+    const updatedDoc = await db.collection("listings").doc(id).get();
+    res.json({ id: updatedDoc.id, ...updatedDoc.data() });
+  } catch (err) {
+    console.error("Error updating listing:", err);
+    res.status(500).json({ error: "Failed to update listing" });
+  }
+});
+
+// DELETE listing
+router.delete("/:id", verifyToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.uid || req.user.claims?.user_id || req.user.user_id;
+
+    // Get the listing to check ownership
+    const listingDoc = await db.collection("listings").doc(id).get();
+    if (!listingDoc.exists) {
+      return res.status(404).json({ error: "Listing not found" });
+    }
+
+    const listingData = listingDoc.data();
+    if (listingData.userId !== userId) {
+      return res.status(403).json({ error: "Unauthorized to delete this listing" });
+    }
+
+    // Delete the listing
+    await db.collection("listings").doc(id).delete();
+    
+    res.json({ message: "Listing deleted successfully" });
+  } catch (err) {
+    console.error("Error deleting listing:", err);
+    res.status(500).json({ error: "Failed to delete listing" });
   }
 });
 
