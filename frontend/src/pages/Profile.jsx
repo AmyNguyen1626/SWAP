@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { getIdToken } from "firebase/auth";
 import { useAuth } from "../contexts/useAuth";
+import { useNavigate } from "react-router-dom";
 import "./profile.css";
 
 export default function Profile() {
     const { currentUser } = useAuth();
+    const navigate = useNavigate();
     const [profile, setProfile] = useState(null);
     const [error, setError] = useState("");
     const [activeTab, setActiveTab] = useState("listings");
@@ -166,6 +168,81 @@ export default function Profile() {
         }
     }
 
+    // Function to navigate to the listing detail page
+    const navigateToListing = (listingId) => {
+        navigate(`/listing/${listingId}`);
+    };
+
+    function handleAcceptRequest(request) {
+        setSelectedRequest(request);
+        setShowContactModal(true);
+    }
+
+    async function confirmAcceptRequest() {
+        if (!selectedRequest || !contactInfo.email) return;
+        try {
+            const token = await getIdToken(currentUser);
+            const res = await fetch(`http://localhost:3000/api/swap-requests/${selectedRequest.id}/accept`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({ contactInfo }),
+            });
+            if (!res.ok) throw new Error("Failed to accept request");
+
+            // Update received requests status locally
+            const updatedRequests = receivedRequests.map(req => 
+                req.id === selectedRequest.id ? { ...req, status: "accepted" } : req
+            );
+            setReceivedRequests(updatedRequests);
+            setShowContactModal(false);
+        } catch (err) {
+            console.error("Error accepting request:", err);
+            alert("Failed to accept request");
+        }
+    }
+
+    async function handleRejectRequest(requestId) {
+        if (!confirm("Are you sure you want to reject this request?")) return;
+        try {
+            const token = await getIdToken(currentUser);
+            const res = await fetch(`http://localhost:3000/api/swap-requests/${requestId}/reject`, {
+                method: "POST",
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            if (!res.ok) throw new Error("Failed to reject request");
+            
+            // Update received requests status locally
+            const updatedRequests = receivedRequests.map(req => 
+                req.id === requestId ? { ...req, status: "rejected" } : req
+            );
+            setReceivedRequests(updatedRequests);
+        } catch (err) {
+            console.error("Error rejecting request:", err);
+            alert("Failed to reject request");
+        }
+    }
+
+    async function handleCancelRequest(requestId) {
+        if (!confirm("Are you sure you want to cancel this request?")) return;
+        try {
+            const token = await getIdToken(currentUser);
+            const res = await fetch(`http://localhost:3000/api/swap-requests/${requestId}`, {
+                method: "DELETE",
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            if (!res.ok) throw new Error("Failed to cancel request");
+            
+            // Remove request from the list
+            setSentRequests(sentRequests.filter(req => req.id !== requestId));
+        } catch (err) {
+            console.error("Error canceling request:", err);
+            alert("Failed to cancel request");
+        }
+    }
+    
     async function handleAcceptRequest(request) {
         setSelectedRequest(request);
         setShowContactModal(true);
