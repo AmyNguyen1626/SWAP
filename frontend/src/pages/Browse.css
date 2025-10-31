@@ -7,10 +7,10 @@
 /* Header Section */
 .browse-header {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-start;
     align-items: center;
-    margin-bottom: 40px;
     gap: 40px;
+    width: 100%
 }
 
 .browse-header h1 {
@@ -30,6 +30,8 @@
     overflow: hidden;
     width: 400px;
     max-width: 100%;
+    margin-left: auto;
+    margin-right: 20px;
 }
 
 .search-bar input {

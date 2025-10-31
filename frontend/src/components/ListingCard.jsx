@@ -18,4 +18,4 @@ export default function ListingCard({ id, image, name, condition, location, pric
       </div>
     </div>
   );
-}
+} 
