@@ -12,9 +12,23 @@ export default function ConversationsList({ onSelectConversation }) {
         if (!currentUser) return;
         try {
             const token = await currentUser.getIdToken(true);
-            const data = await getConversations(token);
-            console.log("Fetched conversations:", data);
-            setConversations(data);
+
+            // Use the most recent lastUpdated timestamp
+            const lastUpdated = conversations.length
+                ? conversations[0].lastUpdated._seconds * 1000
+                : undefined;
+
+            const params = lastUpdated ? { after: lastUpdated } : {};
+            const data = await getConversations(token, params);
+
+            // Merge without duplicates
+            setConversations(prev => {
+                const existingIds = new Set(prev.map(c => c.id));
+                const newConvos = data.filter(c => !existingIds.has(c.id));
+                return [...newConvos, ...prev].sort(
+                    (a, b) => (b.lastUpdated._seconds || 0) - (a.lastUpdated._seconds || 0)
+                );
+            });
         } catch (err) {
             console.error("Error fetching conversations:", err);
         }

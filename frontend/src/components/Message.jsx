@@ -9,19 +9,13 @@ export default function Messages({ convoId }) {
     const [text, setText] = useState("");
     const [loading, setLoading] = useState(true);
     const messagesEndRef = useRef();
-    const pollingInterval = useRef(null);
 
     const fetchMessages = async () => {
         if (!convoId || !currentUser) return;
         try {
             const token = await currentUser.getIdToken();
             const data = await getMessages(convoId, token);
-
-            setMessages(prev => {
-                const existingIds = new Set(prev.map(msg => msg.id));
-                const newMessages = data.filter(msg => !existingIds.has(msg.id));
-                return [...prev, ...newMessages].sort((a, b) => (a.timestamp._seconds || 0) - (b.timestamp._seconds || 0));
-            });
+            setMessages(data.sort((a, b) => (a.timestamp._seconds || 0) - (b.timestamp._seconds || 0)));
         } catch (err) {
             console.error(err);
         } finally {
@@ -30,10 +24,7 @@ export default function Messages({ convoId }) {
     };
 
     useEffect(() => {
-        fetchMessages();
-        if (pollingInterval.current) clearInterval(pollingInterval.current);
-        pollingInterval.current = setInterval(fetchMessages, 3000);
-        return () => clearInterval(pollingInterval.current);
+        fetchMessages(); // initial fetch
     }, [convoId, currentUser]);
 
     useEffect(() => {
@@ -45,6 +36,7 @@ export default function Messages({ convoId }) {
         const newMsgText = text.trim();
         setText("");
 
+        // Optimistic update
         const tempMsg = {
             id: `temp-${Date.now()}`,
             senderId: currentUser.uid,
@@ -55,12 +47,9 @@ export default function Messages({ convoId }) {
         setMessages(prev => [...prev, tempMsg]);
 
         try {
-            const data = await sendMessage(convoId, newMsgText, currentUser.accessToken);
-
-            setMessages(prev => {
-                const filtered = prev.filter(msg => msg.id !== tempMsg.id);
-                return [...filtered, { id: data.id, senderId: currentUser.uid, senderEmail: currentUser.email, text: newMsgText, timestamp: { _seconds: Math.floor(Date.now() / 1000) } }];
-            });
+            await sendMessage(convoId, newMsgText, currentUser.accessToken);
+            // Fetch latest messages from backend after sending
+            fetchMessages();
         } catch (err) {
             console.error("Failed to send message:", err);
         }
@@ -78,10 +67,13 @@ export default function Messages({ convoId }) {
                         className={`message-item ${msg.senderId === currentUser.uid ? "sent" : "received"}`}
                     >
                         <div className="message-bubble">
-                            <span className="sender">{msg.senderId === currentUser.uid ? "You" : msg.senderEmail }</span>
+                            <span className="sender">{msg.senderId === currentUser.uid ? "You" : msg.senderEmail}</span>
                             <p className="message-text">{msg.text}</p>
                             <small className="timestamp">
-                                {new Date((msg.timestamp._seconds || 0) * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                {new Date((msg.timestamp._seconds || 0) * 1000).toLocaleTimeString([], {
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                })}
                             </small>
                         </div>
                     </div>
