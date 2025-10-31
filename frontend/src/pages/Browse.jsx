@@ -13,12 +13,12 @@ export default function Browse() {
     async function getAllListings() {
         setLoading(true);
         try {
-            const result = await fetchListings();
+            const result = await fetchListings(); 
             
             // Filter out non-active listings
             const activeListings = result.filter(listing => 
                 listing.status === "active" || !listing.status
-            );
+            ); 
             
             setListings(activeListings); 
         } catch (err) {
