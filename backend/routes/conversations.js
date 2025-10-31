@@ -11,55 +11,29 @@ router.post("/", verifyToken, async (req, res) => {
     const { participants, listingId, initialMessage } = req.body;
 
     try {
-        const userRecord = await admin.auth().getUser(userId);
-        const senderEmail = userRecord.email;
-        const messageText = initialMessage?.trim() ||
-            `Hi! I'm interested in your listing "${listingId?.listingName || "this item"}".`; //  add auto message if left empty 
-
-        // Start the convo with 2 participants
-        const convoSnapshot = await db.collection("conversations")
-            .where("participants", "array-contains", userId)
-            .get();
-
-        let existingConvo = null;
-
-        convoSnapshot.forEach(doc => {
-            const data = doc.data();
-            // check if all participants match exactly
-            const sameParticipants = participants.length === data.participants.length &&
-                participants.every(p => data.participants.includes(p));
-            if (sameParticipants) {
-                existingConvo = { id: doc.id, ...data };
-            }
-        });
-
-        if (existingConvo) {
-            // Add message to existing conversation
-            await db.collection("conversations")
-                .doc(existingConvo.id)
-                .collection("messages")
-                .add({
-                    senderId: userId,
-                    senderEmail,
-                    text: messageText,
-                    timestamp: Timestamp.now(),
-                    read: false,
-                });
-
-            return res.status(200).json({ ...existingConvo, newMessage: messageText });
+        if (!participants || participants.length < 2) {
+            return res.status(400).json({ error: "At least 2 participants required" });
         }
 
-        // If no existing convo, then create new
-        const convoRef = await db.collection("conversations").add({
-            participants,
-            listingId: listingId || null,
-            lastUpdated: Timestamp.now(),
-        });
+        // Get sender email
+        const userRecord = await admin.auth().getUser(userId);
+        const senderEmail = userRecord.email;
 
-        const messageRef = await db.collection("conversations")
-            .doc(convoRef.id)
-            .collection("messages")
-            .add({
+        // Create auto message if empty
+        const messageText = initialMessage?.trim() ||
+            `Hi! I'm interested in your listing "${listingId?.listingName || "this item"}".`;
+
+        // Sort participants to ensure consistent ID (avoid duplicates)
+        const sortedParticipants = [...participants].sort();
+        const convoId = sortedParticipants.join("_");
+
+        // Reference to sorted convo
+        const convoRef = db.collection("conversations").doc(convoId);
+        const convoDoc = await convoRef.get();
+
+        if (convoDoc.exists) {
+            // Add message to existing conversation
+            const messageRef = await convoRef.collection("messages").add({
                 senderId: userId,
                 senderEmail,
                 text: messageText,
@@ -67,11 +41,37 @@ router.post("/", verifyToken, async (req, res) => {
                 read: false,
             });
 
+            await convoRef.update({ lastUpdated: Timestamp.now() });
+
+            return res.status(200).json({
+                id: convoId,
+                existing: true,
+                newMessage: { id: messageRef.id, text: messageText },
+            });
+        }
+
+        // If no existing convo, then create new
+        await convoRef.set({
+            participants: sortedParticipants,
+            listingId: listingId || null,
+            lastUpdated: Timestamp.now(),
+        });
+
+        const messageRef = await convoRef.collection("messages").add({
+            senderId: userId,
+            senderEmail,
+            text: messageText,
+            timestamp: Timestamp.now(),
+            read: false,
+        });
+
         res.status(201).json({
-            id: convoRef.id,
-            participants,
+            id: convoId,
+            participants: sortedParticipants,
             listingId,
-            messages: [{ id: messageRef.id, senderId: userId, text: messageText }],
+            messages: [
+                { id: messageRef.id, senderId: userId, text: messageText, senderEmail },
+            ],
         });
 
     } catch (err) {
@@ -91,6 +91,10 @@ router.post("/:convoId/messages", verifyToken, async (req, res) => {
     }
 
     try {
+        // Get sender email
+        const userRecord = await admin.auth().getUser(senderId);
+        const senderEmail = userRecord.email;
+
         // Add the new message
         const messageRef = await db
             .collection("conversations")
@@ -132,15 +136,21 @@ router.post("/:convoId/messages", verifyToken, async (req, res) => {
 // GET api/conversations/:convoId/messages
 router.get("/:convoId/messages", verifyToken, async (req, res) => {
     const convoId = req.params.convoId;
+    const after = req.query.after ? Number(req.query.after) : null;
 
     try {
-        const snapshot = await db
+        let query = db
             .collection("conversations")
             .doc(convoId)
             .collection("messages")
-            .orderBy("timestamp")
-            .get();
+            .orderBy("timestamp");
 
+        if (after) {
+            const afterTimestamp = admin.firestore.Timestamp.fromMillis(after);
+            query = query.where("timestamp", ">", afterTimestamp);
+        }
+
+        const snapshot = await query.get();
         const messages = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         res.json(messages);
     } catch (err) {
@@ -152,22 +162,27 @@ router.get("/:convoId/messages", verifyToken, async (req, res) => {
 // GET api/conversations?userId=abc
 router.get("/", verifyToken, async (req, res) => {
     const userId = req.user.uid;
+    const after = req.query.after ? Number(req.query.after) : null;
 
     try {
-        const snapshot = await db
+        let query = db
             .collection("conversations")
             .where("participants", "array-contains", userId)
-            .orderBy("lastUpdated", "desc")
-            .get();
+            .orderBy("lastUpdated", "desc");
+
+        if (after) {
+            const afterTimestamp = admin.firestore.Timestamp.fromMillis(after);
+            query = query.where("lastUpdated", ">", afterTimestamp);
+        }
+
+        const snapshot = await query.get();
 
         const conversations = await Promise.all(
             snapshot.docs.map(async doc => {
                 const data = doc.data();
-
-                // Find the other participant
                 const otherParticipantUid = data.participants.find(uid => uid !== userId);
 
-                let displayEmail = otherParticipantUid; // fallback to UID if email lookup fails
+                let displayEmail = otherParticipantUid;
                 try {
                     const userRecord = await admin.auth().getUser(otherParticipantUid);
                     displayEmail = userRecord.email;

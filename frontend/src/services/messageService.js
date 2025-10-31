@@ -3,10 +3,11 @@ import axios from "axios";
 const API_URL = "http://localhost:3000/api";
 
 // Get all conversations for the current user
-export async function getConversations(token) {
+export async function getConversations(token, params = {}) {
     try {
         const res = await axios.get(`${API_URL}/conversations`, {
-            headers: { Authorization: `Bearer ${token}` }
+            headers: { Authorization: `Bearer ${token}` },
+            params,
         });
         return res.data;
     } catch (err) {
@@ -16,10 +17,11 @@ export async function getConversations(token) {
 }
 
 // Get messages for a specific conversation
-export async function getMessages(convoId, token) {
+export async function getMessages(convoId, token, params = {}) {
     try {
         const res = await axios.get(`${API_URL}/conversations/${convoId}/messages`, {
-            headers: { Authorization: `Bearer ${token}` }
+            headers: { Authorization: `Bearer ${token}` },
+            params,
         });
         return res.data;
     } catch (err) {
