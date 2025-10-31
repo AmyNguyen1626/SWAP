@@ -1,7 +1,7 @@
 .chat-container {
     display: flex;
     flex-direction: column;
-    height: 100vh;
+    height: 86vh;
     border: 1px solid #ddd;
     border-radius: 8px;
     background-color: #a9cac6;
@@ -9,7 +9,7 @@
 }
 
 .messages-list {
-    flex: 1;
+    flex: 1 1 auto; 
     overflow-y: auto;
     display: flex;
     flex-direction: column;
@@ -91,6 +91,7 @@
 }
 
 .input-container {
+    flex-shrink: 0;
     display: flex;
     flex-direction: column;
     border-top: 1px solid #ddd;

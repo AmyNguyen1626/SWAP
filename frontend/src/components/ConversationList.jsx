@@ -13,7 +13,7 @@ export default function ConversationsList({ onSelectConversation }) {
         try {
             const token = await currentUser.getIdToken(true);
 
-            // Use the most recent lastUpdated timestamp
+            // Use the most recent lastUpdated timestamp to fetch only new conversations
             const lastUpdated = conversations.length
                 ? conversations[0].lastUpdated._seconds * 1000
                 : undefined;
@@ -21,7 +21,9 @@ export default function ConversationsList({ onSelectConversation }) {
             const params = lastUpdated ? { after: lastUpdated } : {};
             const data = await getConversations(token, params);
 
-            // Merge without duplicates
+            if (!data || data.length === 0) return;
+
+            // Merge new conversations without duplicates
             setConversations(prev => {
                 const existingIds = new Set(prev.map(c => c.id));
                 const newConvos = data.filter(c => !existingIds.has(c.id));
@@ -34,13 +36,10 @@ export default function ConversationsList({ onSelectConversation }) {
         }
     };
 
+    // Fetch conversations once on mount or when user changes
     useEffect(() => {
         setLoading(true);
         fetchConversations().finally(() => setLoading(false));
-
-        // Poll every 30 seconds for new conversations
-        const interval = setInterval(() => fetchConversations(), 30000);
-        return () => clearInterval(interval);
     }, [currentUser]);
 
     if (loading) return <p>Loading conversations...</p>;
