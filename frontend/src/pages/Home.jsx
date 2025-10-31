@@ -82,7 +82,7 @@ export default function Home() {
             </Swiper>
 
             <div>
-                <h2 style={{ letterSpacing: "2px", marginTop: "40px" }}>Swap What You Have. Find What You Want.</h2>
+                <h2 style={{ letterSpacing: "2px", marginTop: "40px" }}>From Swapping to Shopping - Find Your Next Ride</h2>
                 <button onClick={() => navigate("/browse")}>
                     Start Browsing
                 </button>
