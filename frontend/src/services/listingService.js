@@ -40,3 +40,26 @@ export async function fetchListings() {
     throw err;
   }
 }
+
+// Edit an exisiting listing
+
+export async function editListing(listingId, listingData, token) {
+  try {
+    const response = await fetch(`http://localhost:3000/api/listings/${listingId}`,{
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: listingData,
+    });
+
+    if(!response.ok){
+      throw new Error("Failed to Update Listing");
+    }
+    const data = await response.json();
+    return data;
+  } catch (err){
+    console.error("Error Updating Listing:". err);
+    throw err;
+  }
+}

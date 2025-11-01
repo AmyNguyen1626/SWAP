@@ -10,6 +10,7 @@ import Register from "./components/Register.jsx";
 import CreateListingPage from "./pages/CreateListingPage.jsx";
 import ListingDetail from "./pages/ListingDetail.jsx";
 import ChatPage from "./pages/ChatPage.jsx";
+import EditListingForm from "./pages/EditListingForm.jsx";
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/listing/:id" element={<ListingDetail />} />
+        <Route path="/listing/:id/edit" element={<EditListingForm />} />
 
         {/* Protected routes */}
         <Route
