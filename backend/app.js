@@ -11,7 +11,7 @@ var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var listingsRouter = require('./routes/listings');
 var swapRequestsRouter = require('./routes/swapRequests');
-var wishlistRouter = require('./routes/wishlist');
+var wishlistRouter = require('./routes/wishlist.js');
 var conversationsRouter = require('./routes/conversations');
 
 var app = express();
