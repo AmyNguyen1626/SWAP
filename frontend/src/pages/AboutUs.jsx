@@ -29,7 +29,7 @@ export default function AboutUs() {
             <p>So if you need support, our team is read to guide you!</p>
 
             <p><strong>Get In Touch:</strong></p>
-            <ul style={{listStyleType: "none", marginRight: "40px"}}>
+            <ul style={{listStyleType: "none", padding: 0, margin: 0, fontSize: "inherit", lineHeight: "1.6", textAlign: "right",  marginRight: "40px"}}>
                 <li>Email: support@swap.com</li>
                 <li>Phone: +61 6767 6767</li>
             </ul>
