@@ -1,25 +1,7 @@
+jest.mock("firebase-admin");
+
 const request = require("supertest");
 const app = require("../app.js");
-const admin = require("firebase-admin");
-
-// Mock Firebase Admin to avoid real network calls during tests
-jest.mock("firebase-admin", () => {
-    const actualAdmin = jest.requireActual("firebase-admin");
-    return {
-        ...actualAdmin,
-        auth: () => ({
-            verifyIdToken: jest.fn((token) => {
-                if (token === "valid-token") {
-                    return Promise.resolve({ uid: "123", email: "testuser@example.com" });
-                } else {
-                    return Promise.reject(new Error("Invalid token"));
-                }
-            }),
-        }),
-        initializeApp: jest.fn(),
-        credential: actualAdmin.credential,
-    };
-});
 
 // Test /users
 describe("users API", () => {

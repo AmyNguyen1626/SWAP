@@ -2,11 +2,9 @@ const express = require("express");
 const multer = require("multer");
 const fs = require("fs");
 const { v2: cloudinary } = require("cloudinary");
-const { getFirestore } = require("firebase-admin/firestore");
 const { verifyToken } = require("../middleware/authMiddleware");
-
+const { db } = require("../firebase");
 const router = express.Router();
-const db = getFirestore();
 
 // Configure Cloudinary from env
 cloudinary.config({

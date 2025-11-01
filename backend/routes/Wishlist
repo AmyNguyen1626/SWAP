@@ -1,9 +1,8 @@
 const express = require("express");
-const { getFirestore } = require("firebase-admin/firestore");
 const { verifyToken } = require("../middleware/authMiddleware");
+const { admin, db } = require("../firebase");
 
 const router = express.Router();
-const db = getFirestore();
 
 // Add listing to wishlist
 // POST /api/wishlist

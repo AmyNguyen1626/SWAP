@@ -7,7 +7,7 @@ on:
     branches: [ main ]
 
 jobs:
-  build-and-test:
+  backend:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -17,24 +17,19 @@ jobs:
         with:
           node-version: 20.x
 
-      # --- Backend .env ---
       - name: Set up backend .env
         run: |
           echo "CLOUDINARY_NAME=${{ secrets.CLOUDINARY_NAME }}" >> backend/.env
           echo "CLOUDINARY_API_KEY=${{ secrets.CLOUDINARY_API_KEY }}" >> backend/.env
           echo "CLOUDINARY_API_SECRET=${{ secrets.CLOUDINARY_API_SECRET }}" >> backend/.env
-          echo "FIREBASE_SERVICE_ACCOUNT=${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" >> backend/serviceAccountKey.json
+          echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' > backend/serviceAccountKey.json
 
-      # --- Frontend .env ---
-      - name: Set up frontend .env
+      - name: Install dependencies
         run: |
-          echo "VITE_FIREBASE_API_KEY=${{ secrets.VITE_FIREBASE_API_KEY }}" >> frontend/.env
-          echo "VITE_FIREBASE_AUTH_DOMAIN=${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}" >> frontend/.env
-          echo "VITE_FIREBASE_PROJECT_ID=${{ secrets.VITE_FIREBASE_PROJECT_ID }}" >> frontend/.env
-          echo "VITE_FIREBASE_STORAGE_BUCKET=${{ secrets.VITE_FIREBASE_STORAGE_BUCKET }}" >> frontend/.env
-          echo "VITE_FIREBASE_MESSAGING_SENDER_ID=${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}" >> frontend/.env
-          echo "VITE_FIREBASE_APP_ID=${{ secrets.VITE_FIREBASE_APP_ID }}" >> frontend/.env
+          cd backend
+          npm install
 
-      - run: npm install
-      - run: npm test
-
+      - name: Run tests
+        run: |
+          cd backend
+          npm test

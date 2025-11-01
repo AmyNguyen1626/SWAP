@@ -1,9 +1,8 @@
 const express = require("express");
-const admin = require("firebase-admin");
-const { getFirestore, Timestamp } = require("firebase-admin/firestore");
+const { admin, db } = require("../firebase");
+const { Timestamp } = require("firebase-admin/firestore");
 const { verifyToken } = require("../middleware/authMiddleware");
 const router = express.Router();
-const db = getFirestore();
 
 // POST api/conversations
 router.post("/", verifyToken, async (req, res) => {

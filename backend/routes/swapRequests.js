@@ -1,9 +1,7 @@
 const express = require("express");
-const { getFirestore, Timestamp } = require("firebase-admin/firestore");
 const { verifyToken } = require("../middleware/authMiddleware");
-
+const { db } = require("../firebase");
 const router = express.Router();
-const db = getFirestore();
 
 // POST create a swap request
 router.post("/", verifyToken, async (req, res) => {
