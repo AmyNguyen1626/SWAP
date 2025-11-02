@@ -46,7 +46,7 @@ export async function fetchListings() {
 export async function editListing(listingId, listingData, token) {
   try {
     const response = await fetch(`http://localhost:3000/api/listings/${listingId}`,{
-      method: "PUT",
+      method: "PATCH",
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -58,8 +58,8 @@ export async function editListing(listingId, listingData, token) {
     }
     const data = await response.json();
     return data;
-  } catch (err){
-    console.error("Error Updating Listing:". err);
+  } catch (err) {
+    console.error("Error Updating Listing:", err);
     throw err;
   }
 }
