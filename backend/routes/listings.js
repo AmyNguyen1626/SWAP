@@ -1,64 +1,57 @@
 const express = require("express");
-const { db } = require("../firebase");
+const { admin, db } = require("../firebase");
 const { verifyToken } = require("../middleware/authMiddleware");
-const { upload, uploadFiles } = require("../utils/cloudinaryUploader"); 
+const { upload, uploadFiles } = require("../utils/cloudinaryUploader");
 const router = express.Router();
 
 // POST /api/listings
 router.post("/", verifyToken, upload.array("images", 10), async (req, res) => {
-    // req.user populated by verifyToken middleware (decoded token)
-    try {
-        const { listingName, price, condition, location, description } = req.body;
-        const category = req.body.category ? JSON.parse(req.body.category) : null;
+  // req.user populated by verifyToken middleware (decoded token)
+  try {
+    const { listingName, price, condition, location, description } = req.body;
+    const category = req.body.category ? JSON.parse(req.body.category) : null;
 
-        // Check required fields
-        if (!listingName || !price || !condition || !location) {
-            req.files?.forEach(f => fs.unlinkSync(f.path));
-            return res.status(400).json({ error: "Missing required fields (listingName, price, condition, location)" });
-        }
-
-        if (!req.files || req.files.length === 0) {
-            return res.status(400).json({ error: "At least one image is required" });
-        }
-
-        // Upload files to Cloudinary in parallel
-        const imageUrls = await uploadFiles(req.files, "swap-listings");
-
-        // Remove temp files
-        req.files.forEach(f => {
-            fs.unlink(f.path, (err) => {
-                if (err) console.warn("Failed to delete temp file", f.path, err);
-            });
-        });
-
-        // Build listing object
-        const listing = {
-            listingName,
-            price: Number(price),
-            condition,
-            location,
-            description: description || "",
-            category: category || {},
-            images: imageUrls,
-            status: "active",
-            userId: req.user.uid || req.user.claims?.user_id || req.user.user_id, // whichever decoded token exposes
-            createdAt: new Date().toISOString(),
-        };
-
-        // Save to Firestore (collection: listings)
-        const docRef = await db.collection("listings").add(listing);
-
-        return res.status(201).json({ id: docRef.id, ...listing });
-    } catch (err) {
-        // cleanup temp files on error if exist
-        if (req.files) {
-            req.files.forEach(f => {
-                try { fs.unlinkSync(f.path); } catch (e) { }
-            });
-        }
-        console.error("Error in /api/listings:", err);
-        return res.status(500).json({ error: "Failed to create listing", details: err.message });
+    // Check required fields
+    if (!listingName || !price || !condition || !location) {
+      req.files?.forEach(f => fs.unlinkSync(f.path));
+      return res.status(400).json({ error: "Missing required fields (listingName, price, condition, location)" });
     }
+
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({ error: "At least one image is required" });
+    }
+
+    // Upload files to Cloudinary in parallel
+    const imageUrls = await uploadFiles(req.files, "swap-listings");
+
+    // Build listing object
+    const listing = {
+      listingName,
+      price: Number(price),
+      condition,
+      location,
+      description: description || "",
+      category: category || {},
+      images: imageUrls,
+      status: "active",
+      userId: req.user.uid || req.user.claims?.user_id || req.user.user_id, // whichever decoded token exposes
+      createdAt: new Date().toISOString(),
+    };
+
+    // Save to Firestore (collection: listings)
+    const docRef = await db.collection("listings").add(listing);
+
+    return res.status(201).json({ id: docRef.id, ...listing });
+  } catch (err) {
+    // cleanup temp files on error if exist
+    if (req.files) {
+      req.files.forEach(f => {
+        try { fs.unlinkSync(f.path); } catch (e) { }
+      });
+    }
+    console.error("Error in /api/listings:", err);
+    return res.status(500).json({ error: "Failed to create listing", details: err.message });
+  }
 });
 
 // GET all listings
@@ -77,12 +70,12 @@ router.get("/", async (req, res) => {
 router.get("/user/my-listings", verifyToken, async (req, res) => {
   try {
     const userId = req.user.uid || req.user.claims?.user_id || req.user.user_id;
-    
+
     const snapshot = await db.collection("listings")
       .where("userId", "==", userId)
       .orderBy("createdAt", "desc")
       .get();
-    
+
     const listings = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     res.json(listings);
   } catch (err) {
@@ -96,12 +89,23 @@ router.get("/:id", async (req, res) => {
   try {
     const { id } = req.params;
     const doc = await db.collection("listings").doc(id).get();
-    
+
     if (!doc.exists) {
       return res.status(404).json({ error: "Listing not found" });
     }
-    
-    res.json({ id: doc.id, ...doc.data() });
+
+    const listingData = doc.data();
+
+    // Fetch user record to check if account is disabled
+    let suspended = false;
+    try {
+      const userRecord = await admin.auth().getUser(listingData.userId);
+      suspended = userRecord.disabled || false;
+    } catch (err) {
+      console.warn(`Failed to fetch user record for ${listingData.userId}:`, err);
+    }
+
+    res.json({ id: doc.id, ...listingData, suspended });
   } catch (err) {
     console.error("Error fetching listing:", err);
     res.status(500).json({ error: "Failed to fetch listing" });
@@ -159,7 +163,7 @@ router.delete("/:id", verifyToken, async (req, res) => {
 
     // Delete the listing
     await db.collection("listings").doc(id).delete();
-    
+
     res.json({ message: "Listing deleted successfully" });
   } catch (err) {
     console.error("Error deleting listing:", err);

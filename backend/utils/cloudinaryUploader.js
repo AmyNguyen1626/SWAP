@@ -25,12 +25,17 @@ function uploadFile(filePath, folder = "uploads") {
 // Helper to upload multiple files in parallel
 async function uploadFiles(files, folder = "uploads") {
     const urls = await Promise.all(files.map(f => uploadFile(f.path, folder)));
-    // Clean up temp files
+    // Clean up temp files\
     files.forEach(f => {
-        fs.unlink(f.path, err => {
-            if (err) console.warn("Failed to delete temp file:", f.path);
-        });
+        if (fs.existsSync(f.path)) { // check file exists first
+            fs.unlink(f.path, err => {
+                if (err) console.warn("Failed to delete temp file:", f.path, err);
+            });
+        } else {
+            console.warn("Temp file does not exist, skipping deletion:", f.path);
+        }
     });
+
     return urls;
 }
 
