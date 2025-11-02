@@ -1,36 +1,10 @@
 const express = require("express");
-const multer = require("multer");
-const fs = require("fs");
-const { v2: cloudinary } = require("cloudinary");
-const { verifyToken } = require("../middleware/authMiddleware");
 const { db } = require("../firebase");
+const { verifyToken } = require("../middleware/authMiddleware");
+const { upload, uploadFiles } = require("../utils/cloudinaryUploader"); 
 const router = express.Router();
 
-// Configure Cloudinary from env
-cloudinary.config({
-    cloud_name: process.env.CLOUDINARY_NAME,
-    api_key: process.env.CLOUDINARY_API_KEY,
-    api_secret: process.env.CLOUDINARY_API_SECRET,
-});
-
-// Multer - store files on disk temporarily
-const upload = multer({
-    dest: "uploads/",
-    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB per file
-});
-
-// Upload single file to Cloudinary, returns secure_url
-function uploadToCloudinary(filePath) {
-    return new Promise((resolve, reject) => {
-        cloudinary.uploader.upload(filePath, { folder: "swap-listings" }, (error, result) => {
-            if (error) return reject(error);
-            resolve(result.secure_url);
-        });
-    });
-}
-
 // POST /api/listings
-// Protected route: verifyToken middleware ensures req.user exists
 router.post("/", verifyToken, upload.array("images", 10), async (req, res) => {
     // req.user populated by verifyToken middleware (decoded token)
     try {
@@ -48,8 +22,7 @@ router.post("/", verifyToken, upload.array("images", 10), async (req, res) => {
         }
 
         // Upload files to Cloudinary in parallel
-        const uploadPromises = req.files.map(file => uploadToCloudinary(file.path));
-        const imageUrls = await Promise.all(uploadPromises);
+        const imageUrls = await uploadFiles(req.files, "swap-listings");
 
         // Remove temp files
         req.files.forEach(f => {
