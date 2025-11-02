@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/useAuth";
 import { editListing } from "../services/listingService";
-import "./ListingDetail.css";
+//import "./ListingDetail.css";
+import"../components/CreateListingForm.css"
 
 export default function EditListingForm(){
     const {id} = useParams();
@@ -34,7 +35,7 @@ export default function EditListingForm(){
     // fetch listing details
     useEffect(() => {
         async function fetchListing (){
-            try{
+            try {
                 const res = await fetch(`http://localhost:3000/api/listings/${id}`);
                 if (!res.ok) throw new Error("Failed To Fetch Listing");
                 const data = await res.json();
@@ -58,7 +59,7 @@ export default function EditListingForm(){
                      images: data.images || [],
                 });
             } catch (err){
-                alert("error Loading Listing: " + err.message);
+                alert("Error Loading Listing: " + err.message);
             } finally {
                 setLoading(false);
             }
@@ -134,28 +135,10 @@ export default function EditListingForm(){
             <button className= "back-button" onClick={() => navigate("/browse")}>
                 ← Back to Browse
             </button>
-            <div className="listing-images-section">
-                {formData.images.length > 0 ? (
-                    formData.images.map((img, idx) => (
-                        <img key ={idx} src= {img} alt={`Listing Image ${idx + 1}`} className="thumbnail" />
-                    ))
-                ):(
-                    <p> No Images Available!</p>
-                )}
-                <input
-                type= "file"
-                multiple
-                accept="image/*" 
-                onChange={handleImageChange}
-                disabled={uploading}
-                style={{ marginTop: "1rem"}}
-                />
-            </div>
 
-            <div className="listing-info-section">
-                <h2>Edit Your Listing</h2>
+            <h2>Edit Your Listing</h2>
 
-                <form onSubmit={handleSubmit} className="create-listing-form">
+                <form className="create-listing-form" onSubmit={handleSubmit}>
                     <label>
                         Listing Name:
                         <input
@@ -204,10 +187,9 @@ export default function EditListingForm(){
                         Badge:
                         <input
                         type="text"
-                        name="ybadgeear"
-                        value={formData.bade}
+                        name="badge"
+                        value={formData.badge}
                         onChange={handleChange}
-                        required
                         />
                     </label>
 
@@ -235,46 +217,69 @@ export default function EditListingForm(){
 
                     <label>
                         Body Type:
-                        <input
-                        type="text"
+                        <select
                         name="bodyType"
                         value={formData.bodyType}
                         onChange={handleChange}
                         required
-                        />
+                        >
+                            <option value=""> Select Body Type</option>
+                            <option value="Sedan">Sedan</option>
+                            <option value="SUV">SUV</option>
+                            <option value="Coupe">Coupe</option>
+                            <option value="Hatchback">Hatchback</option>
+                            <option value="Truck">Truck</option>
+                            <option value="Van">Van</option>
+                        </select>
                     </label>
 
                     <label>
                         Transmission:
-                        <input
-                        type="text"
+                        <select
                         name="transmission"
                         value={formData.transmission}
                         onChange={handleChange}
                         required
-                        />
+                        >
+                           <option value="">Select Transmission</option> 
+                           <option value="Automatic">Automatic</option> 
+                           <option value="Manual">Manual</option>
+                           <option value="Semi-Auto">Semi-Auto</option>
+                        </select>
+                        
                     </label>
 
                     <label>
                         Drive Type:
-                        <input
-                        type="text"
+                        <select
                         name="driveType"
                         value={formData.driveType}
                         onChange={handleChange}
                         required
-                        />
+                        >
+                            <option value="">Select Drive Type</option>
+                            <option value="FWD">FWD</option>
+                            <option value="RWD">RWD</option>
+                            <option value="AWD">AWD</option>
+                        </select>
+    
                     </label>
 
                     <label>
                         Fuel Type:
-                        <input
-                        type="text"
+                        <select
                         name="fuelType"
                         value={formData.fuelType}
                         onChange={handleChange}
                         required
-                        />
+                        >
+                            <option value="">Select Fuel Type</option>
+                            <option value="Petrol">Petrol</option>
+                            <option value="Diesel">Diesel</option>
+                            <option value="Hybrid">Hybrid</option>
+                            <option value="Electric">Electric</option>
+                            <option value="LPG">LPG</option>
+                        </select>
                     </label>
 
                     <label>
@@ -290,13 +295,19 @@ export default function EditListingForm(){
 
                     <label>
                         Condition:
-                        <input
-                        type="text"
+                        <select
                         name="condition"
                         value={formData.condition}
                         onChange={handleChange}
                         required
-                        />
+                        >
+                            <option value="">Select Condition</option>
+                            <option value="Excellent">Excellent</option>
+                            <option value="Very Good">Very Good</option>
+                            <option value="Good">Good</option>
+                            <option value="Fair">Fair</option>
+                            <option value="Poor">Poor</option>
+                        </select>
                     </label>
 
                     <label>
@@ -321,6 +332,26 @@ export default function EditListingForm(){
                         />
                     </label>
 
+                    <div className="form-section">
+                        <label>Images:</label>
+                        <input
+                        type= "file"
+                        multiple
+                        accept="image/*" 
+                        onChange={handleImageChange}
+                        disabled={uploading}
+                        />
+                        <div className="preview-images">
+                            {formData.images.length > 0 ? (
+                                formData.images.map((img, idx) => (
+                                <img key ={idx} src= {img} alt={`Listing Image ${idx + 1}`} className="preview-thumbnail" />
+                             ))
+                             ):(
+                             <p> No Images Available!</p>
+                              )}
+                        </div>
+                    </div>
+
                     <div className= "action-buttons" style={{ marginTop: "1rem"}}>
                         <button type="submit" className="primary" disabled={uploading}>
                             {uploading ? "Saving..." : "Save Changes"} 
@@ -331,11 +362,11 @@ export default function EditListingForm(){
                             onClick={() => navigate(`/listing/${id}`)}
                             disabled={uploading}
                             style={{ marginTop: "1rem"}}
-                            ></button>
+                            >Back To Listing</button>
                     </div>
 
                 </form>
-            </div>
+            
         </div>
     )
 
