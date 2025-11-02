@@ -16,13 +16,30 @@ export default function Login() {
             await signInWithEmailAndPassword(auth, email, password);
             navigate("/");
         } catch (err) {
-            setError(err.message);
+            // Map Firebase error codes to friendly messages
+            switch (err.code) {
+                case "auth/user-disabled":
+                    setError("This account has been suspended. Please contact support.");
+                    break;
+                case "auth/wrong-password":
+                    setError("Incorrect password. Please try again.");
+                    break;
+                case "auth/user-not-found":
+                    setError("No account found with this email.");
+                    break;
+                case "auth/invalid-email":
+                    setError("Please enter a valid email address.");
+                    break;
+                default:
+                    setError("Login failed. Please try again later.");
+                    console.error(err);
+            }
         }
     };
 
     return (
         <div className="login-container">
-            <img src="/assets/logo.png" alt="Swap logo" className="login-logo"/>
+            <img src="/assets/logo.png" alt="Swap logo" className="login-logo" />
 
             <input
                 type="email"

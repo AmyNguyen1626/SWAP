@@ -200,6 +200,14 @@ export default function ListingDetail() {
                     {/* Title */}
                     <div className="listing-header">
                         <h1 className="listing-title">{mainTitle}</h1>
+
+                        {/* Suspended warning */}
+                        {listing.suspended && (
+                            <p className="listing-suspended-warning">
+                                ⚠️ This listing's owner account is suspended. You cannot request or save this listing.
+                            </p>
+                        )}
+
                         <p className="listing-specs">{specs}</p>
                         <p className="listing-price">${Number(listing.price).toLocaleString()}</p>
                         {isOwnListing && (
@@ -255,13 +263,14 @@ export default function ListingDetail() {
                             <button 
                                 className="contact-button primary"
                                 onClick={handleRequestClick}
+                                disabled={listing.suspended}
                             >
                                 Request Swap or Buy
                             </button>
                             <button 
                                 className={`save-button ${isInWishlist ? 'saved' : ''}`}
                                 onClick={handleToggleWishlist}
-                                disabled={wishlistLoading}
+                                disabled={wishlistLoading || listing.suspended}
                             >
                                 {wishlistLoading ? "..." : isInWishlist ? "❤️ Saved" : "🤍 Save Listing"}
                             </button>

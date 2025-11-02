@@ -8,6 +8,7 @@ export default function Messages({ convoId }) {
     const [messages, setMessages] = useState([]);
     const [text, setText] = useState("");
     const [loading, setLoading] = useState(true);
+    const [suspendedWarning, setSuspendedWarning] = useState("");
     const messagesEndRef = useRef();
 
     const fetchMessages = async () => {
@@ -15,7 +16,22 @@ export default function Messages({ convoId }) {
         try {
             const token = await currentUser.getIdToken();
             const data = await getMessages(convoId, token);
-            setMessages(data.sort((a, b) => (a.timestamp._seconds || 0) - (b.timestamp._seconds || 0)));
+
+            const { messages: fetchedMessages, suspended } = data; // destruct backend reponse
+
+            // Sort messages by timestamp
+            const sorted = fetchedMessages.sort(
+                (a, b) => (a.timestamp._seconds || 0) - (b.timestamp._seconds || 0)
+            );
+
+            setMessages(sorted);
+
+            // Check if the other user is suspended
+            if (suspended) {
+                setSuspendedWarning("This user has been reported and suspended. You cannot send messages to them.");
+            } else {
+                setSuspendedWarning("");
+            }
         } catch (err) {
             console.error(err);
         } finally {
@@ -32,7 +48,7 @@ export default function Messages({ convoId }) {
     }, [messages]);
 
     const handleSend = async () => {
-        if (!text.trim()) return;
+        if (!text.trim() || suspendedWarning) return; // block sending if suspended
         const newMsgText = text.trim();
         setText("");
 
@@ -48,8 +64,7 @@ export default function Messages({ convoId }) {
 
         try {
             await sendMessage(convoId, newMsgText, currentUser.accessToken);
-            // Fetch latest messages from backend after sending
-            fetchMessages();
+            fetchMessages(); // fetch latest after sending
         } catch (err) {
             console.error("Failed to send message:", err);
         }
@@ -60,6 +75,12 @@ export default function Messages({ convoId }) {
 
     return (
         <div className="chat-container">
+            {suspendedWarning && (
+                <div className="chat-overlay">
+                    <span className="overlay-text">{suspendedWarning}</span>
+                </div>
+            )}
+
             <div className="messages-list">
                 {messages.map(msg => (
                     <div
@@ -88,8 +109,9 @@ export default function Messages({ convoId }) {
                     onChange={e => setText(e.target.value)}
                     placeholder="Type a message..."
                     onKeyDown={e => e.key === "Enter" && handleSend()}
+                    disabled={!!suspendedWarning}
                 />
-                <button className="send-button" onClick={handleSend}>Send</button>
+                <button onClick={handleSend} disabled={!!suspendedWarning}>Send</button>
             </div>
         </div>
     );

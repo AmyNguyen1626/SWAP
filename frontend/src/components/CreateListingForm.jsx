@@ -153,7 +153,7 @@ export default function CreateListingForm() {
             });
 
             // Call backend API
-            const result = await createListing(data, token);
+            await createListing(data, token);
             
             alert("Listing created successfully!");
             // Navigate to browse page

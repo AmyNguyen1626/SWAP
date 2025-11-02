@@ -51,7 +51,7 @@ export default function ConversationsList({ onSelectConversation }) {
                 <li
                     key={convo.id}
                     className="conversation-item"
-                    onClick={() => onSelectConversation(convo.id)}
+                    onClick={() => onSelectConversation(convo)}
                 >
                     <span className="conversation-email">{convo.displayEmail}</span>
                     <span className="conversation-updated">
