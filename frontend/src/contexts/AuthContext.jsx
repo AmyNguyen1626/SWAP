@@ -9,8 +9,23 @@ export function AuthProvider({ children }) {
     const [loading, setLoading] = useState(true); // loading state to ensure children are rendered only after auth state is known
 
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, (user) => {
-            setCurrentUser(user);
+        const unsubscribe = onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                try {
+                    await user.getIdToken(true); // force refresh to detect disabled users
+                    setCurrentUser(user);
+                } catch (err) {
+                    if (err.code === "auth/user-disabled") {
+                        alert("Your account has been suspended due to a policy violation.");
+                        await auth.signOut(); // force logout
+                        setCurrentUser(null);
+                    } else {
+                        console.error(err);
+                    }
+                }
+            } else {
+                setCurrentUser(null);
+            }
             setLoading(false);
         });
 
