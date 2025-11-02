@@ -151,7 +151,27 @@ router.get("/:convoId/messages", verifyToken, async (req, res) => {
 
         const snapshot = await query.get();
         const messages = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        res.json(messages);
+
+        // Get conversation participants
+        const convoDoc = await db.collection("conversations").doc(convoId).get();
+        if (!convoDoc.exists) {
+            return res.status(404).json({ error: "Conversation not found" });
+        }
+
+        const data = convoDoc.data();
+        const otherParticipantUid = data.participants.find(uid => uid !== req.user.uid);
+
+        // Check if the other user is suspended
+        let suspended = false;
+        try {
+            const userRecord = await admin.auth().getUser(otherParticipantUid);
+            suspended = userRecord.disabled;
+        } catch (err) {
+            console.warn("Failed to get user status", err);
+        }
+
+        // Return messages AND suspended flag
+        res.json({ messages, suspended });
     } catch (err) {
         console.error("Failed to fetch messages:", err);
         res.status(500).json({ error: "Failed to fetch messages" });
@@ -182,9 +202,12 @@ router.get("/", verifyToken, async (req, res) => {
                 const otherParticipantUid = data.participants.find(uid => uid !== userId);
 
                 let displayEmail = otherParticipantUid;
+                let suspended = false;
+
                 try {
                     const userRecord = await admin.auth().getUser(otherParticipantUid);
                     displayEmail = userRecord.email;
+                    suspended = userRecord.disabled || false;
                 } catch (err) {
                     console.warn(`Failed to fetch email for UID ${otherParticipantUid}:`, err);
                 }
@@ -193,8 +216,10 @@ router.get("/", verifyToken, async (req, res) => {
                     id: doc.id,
                     listingId: data.listingId,
                     participants: data.participants,
+                    uid: otherParticipantUid,
                     displayEmail,
-                    lastUpdated: data.lastUpdated
+                    lastUpdated: data.lastUpdated,
+                    suspended,
                 };
             })
         );
