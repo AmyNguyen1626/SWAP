@@ -75,6 +75,9 @@ router.post("/", verifyToken, async (req, res) => {
       message: message || "",
       status: "pending",
       createdAt: new Date().toISOString(),
+      // notification tracking fields
+      receiverViewed: false,
+      senderViewed:true, 
     };
 
     const docRef = await db.collection("swapRequests").add(swapRequest);
@@ -198,14 +201,7 @@ router.post("/:id/accept", verifyToken, async (req, res) => {
     if (request.status !== "pending") {
       return res.status(400).json({ error: `This request has already been ${request.status}` });
     }
-
-    // Update the request status to accepted
-    await db.collection("swapRequests").doc(id).update({
-      status: "accepted",
-      contactInfo,
-      acceptedAt: new Date().toISOString()
-    });
-
+    
     // Fetch the updated request
     const updatedDoc = await db.collection("swapRequests").doc(id).get();
 
@@ -213,7 +209,8 @@ router.post("/:id/accept", verifyToken, async (req, res) => {
     await db.collection("swapRequests").doc(id).update({
       status: "accepted",
       contactInfo,
-      acceptedAt: new Date().toISOString()
+      acceptedAt: new Date().toISOString(),
+      senderViewed: false,
     });
 
     // ADDITION: Update the listing status to "reserved"
@@ -265,7 +262,8 @@ router.post("/:id/reject", verifyToken, async (req, res) => {
     // Update the request status to rejected
     await db.collection("swapRequests").doc(id).update({
       status: "rejected",
-      rejectedAt: new Date().toISOString()
+      rejectedAt: new Date().toISOString(),
+      senderViewed: false,
     });
 
     // Fetch the updated request

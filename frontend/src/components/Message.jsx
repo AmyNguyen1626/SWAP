@@ -1,10 +1,13 @@
 import { useEffect, useState, useRef } from "react";
 import { useAuth } from "../contexts/useAuth";
+import { useNotifications } from "../contexts/NotificationContext";
 import { getMessages, sendMessage } from "../services/messageService";
+import { markMessagesAsRead } from "../services/notificationService";
 import "./Message.css";
 
 export default function Messages({ convoId }) {
     const { currentUser } = useAuth();
+    const { refreshNotifications } = useNotifications();
     const [messages, setMessages] = useState([]);
     const [text, setText] = useState("");
     const [loading, setLoading] = useState(true);
@@ -17,7 +20,7 @@ export default function Messages({ convoId }) {
             const token = await currentUser.getIdToken();
             const data = await getMessages(convoId, token);
 
-            const { messages: fetchedMessages, suspended } = data; // destruct backend reponse
+            const { messages: fetchedMessages, suspended } = data;
 
             // Sort messages by timestamp
             const sorted = fetchedMessages.sort(
@@ -32,6 +35,12 @@ export default function Messages({ convoId }) {
             } else {
                 setSuspendedWarning("");
             }
+
+            // Mark messages as read when opening conversation
+            await markMessagesAsRead(convoId, token);
+            
+            // Refresh notification counts
+            refreshNotifications();
         } catch (err) {
             console.error(err);
         } finally {
@@ -48,7 +57,7 @@ export default function Messages({ convoId }) {
     }, [messages]);
 
     const handleSend = async () => {
-        if (!text.trim() || suspendedWarning) return; // block sending if suspended
+        if (!text.trim() || suspendedWarning) return;
         const newMsgText = text.trim();
         setText("");
 
@@ -64,7 +73,7 @@ export default function Messages({ convoId }) {
 
         try {
             await sendMessage(convoId, newMsgText, currentUser.accessToken);
-            fetchMessages(); // fetch latest after sending
+            fetchMessages();
         } catch (err) {
             console.error("Failed to send message:", err);
         }

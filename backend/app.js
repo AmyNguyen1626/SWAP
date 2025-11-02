@@ -14,6 +14,7 @@ var swapRequestsRouter = require('./routes/swapRequests');
 var wishlistRouter = require('./routes/wishlist.js');
 var conversationsRouter = require('./routes/conversations');
 var reportsRouter = require('./routes/reports');
+const notificationRoutes = require('./routes/notifications');
 
 var app = express();
 
@@ -50,6 +51,9 @@ app.use("/api/conversations", conversationsRouter)
 
 // Report routes (protected)
 app.use('/api/reports', reportsRouter);
+
+// Notiflication routes (protected)
+app.use('/api/notifications', notificationRoutes);
 
 // catch 404
 app.use((req, res, next) => {

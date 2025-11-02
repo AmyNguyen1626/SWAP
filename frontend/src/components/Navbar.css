@@ -48,6 +48,12 @@
     position: relative;
 }
 
+/* Links with notification badges need relative positioning */
+.nav-link-with-badge {
+    position: relative;
+    display: inline-block;
+}
+
 .nav-links a::after {
     content: '';
     position: absolute;

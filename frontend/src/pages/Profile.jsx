@@ -1,11 +1,15 @@
 import { useEffect, useState } from "react";
 import { getIdToken } from "firebase/auth";
 import { useAuth } from "../contexts/useAuth";
+import { useNotifications } from "../contexts/NotificationContext";
+import { markReceivedRequestsAsViewed, markSentRequestsAsViewed, markRequestAsViewed } from "../services/notificationService";
 import { useNavigate } from "react-router-dom";
+import NotificationBadge from "../components/NotificationBadge";
 import "./profile.css";
 
 export default function Profile() {
     const { currentUser } = useAuth();
+    const { notificationCounts, refreshNotifications } = useNotifications();
     const navigate = useNavigate();
     const [profile, setProfile] = useState(null);
     const [error, setError] = useState("");
@@ -33,6 +37,113 @@ export default function Profile() {
         navigate(`/listing/${listingId}`);
     };
 
+    // Mark requests as viewed when switching to requests tabs
+    useEffect(() => {
+        const markAsViewed = async () => {
+            if (!currentUser) return;
+
+            try {
+                const token = await currentUser.getIdToken();
+
+                if (activeTab === "received-requests") {
+                    // Mark all received requests as viewed
+                    await markReceivedRequestsAsViewed(token);
+                    await refreshNotifications();
+                } else if (activeTab === "sent-requests") {
+                    // Mark all sent requests as viewed
+                    await markSentRequestsAsViewed(token);
+                    await refreshNotifications();
+                }
+            } catch (err) {
+                console.error("Error marking requests as viewed:", err);
+            }
+        };
+
+        // Only mark as viewed after the data has been loaded
+        if (activeTab === "received-requests" && !requestsLoading && receivedRequests.length > 0) {
+            markAsViewed();
+        } else if (activeTab === "sent-requests" && !requestsLoading && sentRequests.length > 0) {
+            markAsViewed();
+        }
+    }, [activeTab, requestsLoading, receivedRequests.length, sentRequests.length]);
+
+    const handleAcceptRequestAction = async (requestId) => {
+        try {
+            const token = await currentUser.getIdToken();
+            
+            // Accept the request (existing logic)
+            const response = await fetch(`http://localhost:3000/api/swap-requests/${requestId}/accept`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({ contactInfo }),
+            });
+            
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || "Failed to accept request");
+            }
+            
+            // Update received requests status locally
+            const updatedRequests = receivedRequests.map(req => 
+                req.id === requestId ? { ...req, status: "accepted", contactInfo } : req
+            );
+            
+            setReceivedRequests(updatedRequests);
+            
+            // Mark as viewed
+            await markRequestAsViewed(requestId, token);
+            
+            // Refresh notifications
+            await refreshNotifications();
+            
+            return true;
+        } catch (err) {
+            console.error("Error accepting request:", err);
+            throw err;
+        }
+    };
+
+    const handleRejectRequestAction = async (requestId) => {
+        try {
+            const token = await currentUser.getIdToken();
+            
+            // Reject the request (existing logic)
+            const response = await fetch(`http://localhost:3000/api/swap-requests/${requestId}/reject`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+            });
+            
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || "Failed to reject request");
+            }
+            
+            // Update received requests status locally
+            const updatedRequests = receivedRequests.map(req => 
+                req.id === requestId ? { ...req, status: "rejected" } : req
+            );
+            
+            setReceivedRequests(updatedRequests);
+            
+            // Mark as viewed
+            await markRequestAsViewed(requestId, token);
+            
+            // Refresh notifications
+            await refreshNotifications();
+            
+            return true;
+        } catch (err) {
+            console.error("Error rejecting request:", err);
+            throw err;
+        }
+    };
+    
     useEffect(() => {
         async function fetchProfile() {
             try {
@@ -182,71 +293,21 @@ export default function Profile() {
         if (!selectedRequest || !contactInfo.email) return;
         
         try {
-            const token = await getIdToken(currentUser);
-            
-            // Use the correctly structured endpoint
-            const response = await fetch(`http://localhost:3000/api/swap-requests/${selectedRequest.id}/accept`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify({ contactInfo }),
-            });
-            
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || "Failed to accept request");
-            }
-            
-            // Update received requests status locally
-            const updatedRequests = receivedRequests.map(req => 
-                req.id === selectedRequest.id ? { ...req, status: "accepted", contactInfo } : req
-            );
-            
-            setReceivedRequests(updatedRequests);
+            await handleAcceptRequestAction(selectedRequest.id);
             setShowContactModal(false);
-            
-            // Show success message
             alert("Request accepted successfully!");
-            
         } catch (err) {
-            console.error("Error accepting request:", err);
             alert(`Error accepting request: ${err.message}`);
         }
     }
 
     async function handleRejectRequest(requestId) {
         if (!confirm("Are you sure you want to reject this request?")) return;
+        
         try {
-            const token = await getIdToken(currentUser);
-            
-            // Use the correctly structured endpoint
-            const response = await fetch(`http://localhost:3000/api/swap-requests/${requestId}/reject`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-            });
-            
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || "Failed to reject request");
-            }
-            
-            // Update received requests status locally
-            const updatedRequests = receivedRequests.map(req => 
-                req.id === requestId ? { ...req, status: "rejected" } : req
-            );
-            
-            setReceivedRequests(updatedRequests);
-            
-            // Show success message
+            await handleRejectRequestAction(requestId);
             alert("Request rejected successfully");
-            
         } catch (err) {
-            console.error("Error rejecting request:", err);
             alert(`Error rejecting request: ${err.message}`);
         }
     }
@@ -295,16 +356,30 @@ export default function Profile() {
             </div>
 
             <div className="tabs">
-                <button className={`tab ${activeTab === "listings" ? "active" : ""}`} onClick={() => setActiveTab("listings")}>
+                <button 
+                    className={`tab ${activeTab === "listings" ? "active" : ""}`} 
+                    onClick={() => setActiveTab("listings")}
+                >
                     My Listings
                 </button>
-                <button className={`tab ${activeTab === "received-requests" ? "active" : ""}`} onClick={() => setActiveTab("received-requests")}>
+                <button 
+                    className={`tab tab-with-badge ${activeTab === "received-requests" ? "active" : ""}`} 
+                    onClick={() => setActiveTab("received-requests")}
+                >
                     Received Requests
+                    <NotificationBadge count={notificationCounts.unviewedReceivedRequests} />
                 </button>
-                <button className={`tab ${activeTab === "sent-requests" ? "active" : ""}`} onClick={() => setActiveTab("sent-requests")}>
+                <button 
+                    className={`tab tab-with-badge ${activeTab === "sent-requests" ? "active" : ""}`} 
+                    onClick={() => setActiveTab("sent-requests")}
+                >
                     Sent Requests
+                    <NotificationBadge count={notificationCounts.unviewedSentRequests} />
                 </button>
-                <button className={`tab ${activeTab === "wishlist" ? "active" : ""}`} onClick={() => setActiveTab("wishlist")}>
+                <button 
+                    className={`tab ${activeTab === "wishlist" ? "active" : ""}`} 
+                    onClick={() => setActiveTab("wishlist")}
+                >
                     Wishlist
                 </button>
             </div>

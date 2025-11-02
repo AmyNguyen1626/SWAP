@@ -1,11 +1,14 @@
 import { Link, useNavigate } from "react-router-dom";
 import { signOut } from "firebase/auth";
 import { useAuth } from "../contexts/useAuth";
+import { useNotifications } from "../contexts/NotificationContext";
 import { auth } from "../firebase";
+import NotificationBadge from "./NotificationBadge";
 import "./Navbar.css";
 
 export default function Navbar() {
     const { currentUser } = useAuth();
+    const { notificationCounts } = useNotifications();
     const navigate = useNavigate();
 
     const handleLogout = async () => {
@@ -35,8 +38,14 @@ export default function Navbar() {
                     {/* Show different links based on auth state */}
                     {currentUser ? (
                         <>
-                            <Link to="/profile">Profile</Link>
-                            <Link to="/chat">Chat</Link>
+                            <Link to="/profile" className="nav-link-with-badge">
+                                Profile
+                                <NotificationBadge count={notificationCounts.totalUnviewedRequests} />
+                            </Link>
+                            <Link to="/chat" className="nav-link-with-badge">
+                                Chat
+                                <NotificationBadge count={notificationCounts.unreadMessages} />
+                            </Link>
                             <Link to="/create-listing">Create Listing</Link>
                             <span className="user-email">({currentUser.email})</span>
                             <button onClick={handleLogout} className="logout-btn">
