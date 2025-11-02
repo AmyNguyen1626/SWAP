@@ -6,6 +6,7 @@
     border-radius: 8px;
     background-color: #a9cac6;
     padding: 20px;
+    position: relative;
 }
 
 .messages-list {
@@ -90,6 +91,7 @@
     color: #c9c9c9;
 }
 
+/* Message input */
 .input-container {
     flex-shrink: 0;
     display: flex;
@@ -113,4 +115,27 @@
     text-align: center;
     color: #666;
     margin-top: 20px;
+}
+
+/* Suspended behaviour */
+.chat-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 100; 
+    pointer-events: none;
+}
+
+.overlay-text {
+    font-size: 17px;
+    color: red;
+    text-align: center;
+    padding: 10px;
+    border-radius: 6px;
 }

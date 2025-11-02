@@ -75,7 +75,11 @@ export default function Messages({ convoId }) {
 
     return (
         <div className="chat-container">
-            {suspendedWarning && <div className="suspended-warning">{suspendedWarning}</div>}
+            {suspendedWarning && (
+                <div className="chat-overlay">
+                    <span className="overlay-text">{suspendedWarning}</span>
+                </div>
+            )}
 
             <div className="messages-list">
                 {messages.map(msg => (
@@ -105,11 +109,9 @@ export default function Messages({ convoId }) {
                     onChange={e => setText(e.target.value)}
                     placeholder="Type a message..."
                     onKeyDown={e => e.key === "Enter" && handleSend()}
-                    disabled={!!suspendedWarning} // disable input
+                    disabled={!!suspendedWarning}
                 />
-                <button className="send-button" onClick={handleSend} disabled={!!suspendedWarning}>
-                    Send
-                </button>
+                <button onClick={handleSend} disabled={!!suspendedWarning}>Send</button>
             </div>
         </div>
     );
