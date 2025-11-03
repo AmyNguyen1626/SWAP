@@ -1,22 +1,19 @@
+import axios from "axios";
+import { getIdToken } from "firebase/auth";
+
+const API_BASE = "http://localhost:3000/api/listings";
+
 // Create new listing
 export async function createListing(listingData, token) {
   try {
-    const response = await fetch("http://localhost:3000/api/listings", {
-      method: "POST",
+    const response = await axios.post(API_BASE, listingData, {
       headers: {
-        Authorization: `Bearer ${token}`, // for protected route
+        Authorization: `Bearer ${token}`,
       },
-      body: listingData,
     });
-
-    if (!response.ok) {
-      throw new Error("Failed to create listing");
-    }
-
-    const data = await response.json();
-    return data;
+    return response.data;
   } catch (err) {
-    console.error("Error creating listing:", err);
+    console.error("Error creating listing:", err.response?.data || err.message);
     throw err;
   }
 }
@@ -24,42 +21,47 @@ export async function createListing(listingData, token) {
 // Fetch all listings
 export async function fetchListings() {
   try {
-    const response = await fetch("http://localhost:3000/api/listings", {
-      method: "GET",
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || "Failed to fetch listings");
-    }
-
-    const listings = await response.json();
-    return listings;
+    const response = await axios.get(API_BASE);
+    return response.data;
   } catch (err) {
-    console.error("Error fetching listings:", err);
+    console.error("Error fetching listings:", err.response?.data || err.message);
     throw err;
   }
 }
 
-// Edit an exisiting listing
-
+// Edit an existing listing
 export async function editListing(listingId, listingData, token) {
   try {
-    const response = await fetch(`http://localhost:3000/api/listings/${listingId}`,{
-      method: "PATCH",
+    const response = await axios.patch(`${API_BASE}/${listingId}`, listingData, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
-      body: listingData,
+    });
+    return response.data;
+  } catch (err) {
+    console.error("Error updating listing:", err.response?.data || err.message);
+    throw err;
+  }
+}
+
+// Fetch user listings
+export async function fetchUserListings(currentUser, excludeListingId) {
+  if (!currentUser) throw new Error("No user logged in");
+
+  try {
+    const token = await getIdToken(currentUser);
+    const response = await axios.get(`${API_BASE}/user/my-listings`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
     });
 
-    if(!response.ok){
-      throw new Error("Failed to Update Listing");
-    }
-    const data = await response.json();
-    return data;
+    // Filter out a specific listing
+    return response.data.filter(
+      (listing) => listing.id !== excludeListingId && listing.status === "active"
+    );
   } catch (err) {
-    console.error("Error Updating Listing:", err);
+    console.error("Error fetching user listings:", err.response?.data || err.message);
     throw err;
   }
 }
