@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { fetchListings } from "../services/listingService";
 import ListingCard from "../components/ListingCard";
 import "./Browse.css";
@@ -22,28 +22,67 @@ export default function Browse() {
         "Subaru","Mitsubishi","Nissan","Ford","Volkswagen",
          "BMW","Mercedes-Benz","Audi"
     ];
+    const toNumber = (v) => {
+    if (v == null) return 0;
+     const n = Number(String(v).replace(/[^\d.-]/g, ""));
+     return Number.isFinite(n) ? n : 0;
+    };
 
-    useEffect(() => {
-    async function getAllListings() {
-        setLoading(true);
-        try {
-            const result = await fetchListings(); 
-            
-            // Filter out non-active listings
-            const activeListings = result.filter(listing => 
-                listing.status === "active" || !listing.status
-            ); 
-            
-            setListings(activeListings); 
-        } catch (err) {
-            setError(err.message);
-        } finally {
-            setLoading(false);
-        }
+    const getYear = (l) => {
+    const y = Number(l?.category?.year);
+     if (y >= 1980 && y <= new Date().getFullYear() + 1) return y;
+    const name = l?.listingName || l?.title || "";
+    const m = name.match(/\b(19[8-9]\d|20[0-3]\d)\b/); // 1980–2039
+     return m ? Number(m[0]) : 0;
+    };
+    const getKm = (l) => {
+      if (l?.category?.odometer != null) return Number(l.category.odometer) || 0;
+    const cands = [l.kilometers, l.km, l.kms, l.odometer, l.mileage];
+      for (const c of cands) {
+    const n = toNumber(c);
+      if (n > 0) return n;
+   }
+     return 0;
+    };
+    const filterRef = useRef(null);
+    const sortRef = useRef(null);
+
+    // 1) fetch listings once
+// 1) fetch listings once
+useEffect(() => {
+  async function getAllListings() {
+    setLoading(true);
+    try {
+      const result = await fetchListings();
+      const activeListings = result.filter(
+        (l) => l.status === "active" || !l.status
+      );
+      setListings(activeListings);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
     }
-
-    getAllListings();
+  }
+  getAllListings();
 }, []);
+
+// 2) close menus on outside click
+useEffect(() => {
+  const handleClickOutside = (event) => {
+    if (filterRef.current && !filterRef.current.contains(event.target)) {
+      setShowFilter(false);
+    }
+    if (sortRef.current && !sortRef.current.contains(event.target)) {
+      setShowSort(false);
+    }
+  };
+
+  // use 'click' for simplicity; 'mousedown' is fine too
+  document.addEventListener("click", handleClickOutside);
+  return () => document.removeEventListener("click", handleClickOutside);
+}, []);
+
 
 // Filter + Sort listings
 let filteredListings = listings.filter((listing) => {
@@ -58,12 +97,13 @@ let filteredListings = listings.filter((listing) => {
   const matchesMake =
     !makeFilter || listing.category?.make?.toLowerCase() === makeFilter.toLowerCase();
 
-  const year = Number(listing.year || listing.modelYear || 0);
-  const price = Number(listing.price || 0);
+  const year = getYear(listing);
 
   const matchesYear =
-    (!minYear || year >= Number(minYear)) &&
-    (!maxYear || year <= Number(maxYear));
+  (!minYear || year >= Number(minYear)) &&
+  (!maxYear || year <= Number(maxYear));
+
+  const price = Number(listing.price || 0);
 
   const matchesPrice =
     (!minPrice || price >= Number(minPrice)) &&
@@ -74,29 +114,26 @@ let filteredListings = listings.filter((listing) => {
 
 // Sort choices
 filteredListings = filteredListings.sort((a, b) => {
-  const yearA = Number(a.year || a.modelYear || 0);
-  const yearB = Number(b.year || b.modelYear || 0);
+  const yearA = getYear(a);
+  const yearB = getYear(b);
+  const kmA   = getKm(a);
+  const kmB   = getKm(b);
   const priceA = Number(a.price || 0);
   const priceB = Number(b.price || 0);
-  const kmA = Number(a.kilometers || a.km || 0);
-  const kmB = Number(b.kilometers || b.km || 0);
+
 
   switch (sortOption) {
-    case "price-asc": return priceA - priceB;
-    case "price-desc": return priceB - priceA;
-    case "km-asc": return kmA - kmB;
-    case "km-desc": return kmB - kmA;
-    case "year-desc": return yearB - yearA; // Newest → Oldest
-    case "year-asc": return yearA - yearB;  // Oldest → Newest
-    case "newest":
-    default: {
-      // fallback to createdAt when available
-      const dA = new Date(a.createdAt || a.timestamp || 0).getTime();
-      const dB = new Date(b.createdAt || b.timestamp || 0).getTime();
-      return dB - dA;
-    }
-  }
+  case "price-asc": return priceA - priceB;
+  case "price-desc": return priceB - priceA;
+  case "km-asc":     return kmA - kmB;
+  case "km-desc":    return kmB - kmA;
+  case "year-desc":  return yearB - yearA; // Newest → Oldest
+  case "year-asc":   return yearA - yearB; // Oldest → Newest
+  default: { /* fallback to createdAt if you like */ }
+}
+
 });
+
 
 
     return (
@@ -119,10 +156,13 @@ filteredListings = filteredListings.sort((a, b) => {
 {/* Actions: Filter & Sort */}
 <div className="browse-actions">
   {/* FILTER BUTTON */}
-  <div className="menu-wrap">
+  <div className="menu-wrap" ref={filterRef}>
     <button
       className="menu-btn"
-      onClick={() => { setShowFilter((v) => !v); setShowSort(false); }}
+      onClick={() => {
+        setShowFilter((v) => !v);
+        setShowSort(false);
+      }}
       aria-haspopup="true"
       aria-expanded={showFilter}
     >
@@ -131,21 +171,21 @@ filteredListings = filteredListings.sort((a, b) => {
 
     {showFilter && (
       <div className="dropdown">
-        {/* Row: Make with hover submenu */}
-        <div className="dropdown-item has-submenu">
+        {/* Row: Make */}
+        <div className="dropdown-item">
           <span>Make</span>
-          <div className="submenu">
-            <select
-              className="filter-select"
-              value={makeFilter}
-              onChange={(e) => setMakeFilter(e.target.value)}
-            >
-              <option value="">All Makes</option>
-              {AU_MAKES.map((m) => (
-                <option key={m} value={m}>{m}</option>
-              ))}
-            </select>
-          </div>
+          <select
+            className="filter-select"
+            value={makeFilter}
+            onChange={(e) => setMakeFilter(e.target.value)}
+          >
+            <option value="">All Makes</option>
+            {AU_MAKES.map((m) => (
+              <option key={m} value={m}>
+                {m}
+              </option>
+            ))}
+          </select>
         </div>
 
         {/* Row: Year range */}
@@ -173,36 +213,44 @@ filteredListings = filteredListings.sort((a, b) => {
 
         {/* Row: Price range */}
         <div className="dropdown-item price-item">
-  <span>Price</span>
-  <div className="range-row">
-    <label>From AUD$</label>
-    <input
-      type="number"
-      className="filter-input"
-      value={minPrice}
-      onChange={(e) => setMinPrice(e.target.value)}
-      placeholder="Min"
-    />
-    <label>To AUD$</label>
-    <input
-      type="number"
-      className="filter-input"
-      value={maxPrice}
-      onChange={(e) => setMaxPrice(e.target.value)}
-      placeholder="Max"
-    />
-  </div>
-</div>
+          <span>Price</span>
+          <div className="range-row">
+            <label>From AUD$</label>
+            <input
+              type="number"
+              className="filter-input"
+              value={minPrice}
+              onChange={(e) => setMinPrice(e.target.value)}
+              placeholder="Min"
+            />
+            <label>To AUD$</label>
+            <input
+              type="number"
+              className="filter-input"
+              value={maxPrice}
+              onChange={(e) => setMaxPrice(e.target.value)}
+              placeholder="Max"
+            />
+          </div>
 
+          <div className="dropdown-footer">
+            <button className="save-btn" onClick={() => setShowFilter(false)}>
+              Save filters
+            </button>
+          </div>
+        </div>
       </div>
     )}
   </div>
 
   {/* SORT BUTTON */}
-  <div className="menu-wrap">
+  <div className="menu-wrap" ref={sortRef}>
     <button
       className="menu-btn"
-      onClick={() => { setShowSort((v) => !v); setShowFilter(false); }}
+      onClick={() => {
+        setShowSort((v) => !v);
+        setShowFilter(false);
+      }}
       aria-haspopup="true"
       aria-expanded={showSort}
     >
@@ -211,28 +259,65 @@ filteredListings = filteredListings.sort((a, b) => {
 
     {showSort && (
       <div className="dropdown">
-        <button className="drop-item" onClick={() => setSortOption("price-asc")}>
+        <button
+          className="drop-item"
+          onClick={() => {
+            setSortOption("price-asc");
+            setShowSort(false);
+          }}
+        >
           Price: Low → High
         </button>
-        <button className="drop-item" onClick={() => setSortOption("price-desc")}>
+        <button
+          className="drop-item"
+          onClick={() => {
+            setSortOption("price-desc");
+            setShowSort(false);
+          }}
+        >
           Price: High → Low
         </button>
-        <button className="drop-item" onClick={() => setSortOption("year-desc")}>
+        <button
+          className="drop-item"
+          onClick={() => {
+            setSortOption("year-desc");
+            setShowSort(false);
+          }}
+        >
           Year: Newest → Oldest
         </button>
-        <button className="drop-item" onClick={() => setSortOption("year-asc")}>
+        <button
+          className="drop-item"
+          onClick={() => {
+            setSortOption("year-asc");
+            setShowSort(false);
+          }}
+        >
           Year: Oldest → Newest
         </button>
-        <button className="drop-item" onClick={() => setSortOption("km-asc")}>
+        <button
+          className="drop-item"
+          onClick={() => {
+            setSortOption("km-asc");
+            setShowSort(false);
+          }}
+        >
           KM: Low → High
         </button>
-        <button className="drop-item" onClick={() => setSortOption("km-desc")}>
+        <button
+          className="drop-item"
+          onClick={() => {
+            setSortOption("km-desc");
+            setShowSort(false);
+          }}
+        >
           KM: High → Low
         </button>
       </div>
     )}
   </div>
 </div>
+
 
 
 
