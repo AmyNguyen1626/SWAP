@@ -77,7 +77,7 @@ router.post("/", verifyToken, async (req, res) => {
       createdAt: new Date().toISOString(),
       // notification tracking fields
       receiverViewed: false,
-      senderViewed:true, 
+      senderViewed: true,
     };
 
     const docRef = await db.collection("swapRequests").add(swapRequest);
@@ -201,11 +201,8 @@ router.post("/:id/accept", verifyToken, async (req, res) => {
     if (request.status !== "pending") {
       return res.status(400).json({ error: `This request has already been ${request.status}` });
     }
-    
-    // Fetch the updated request
-    const updatedDoc = await db.collection("swapRequests").doc(id).get();
 
-    // After updating the swap request status
+    // Update the swap request status
     await db.collection("swapRequests").doc(id).update({
       status: "accepted",
       contactInfo,
@@ -227,6 +224,8 @@ router.post("/:id/accept", verifyToken, async (req, res) => {
       });
     }
 
+    // Fetch the updated swap request to return in response
+    const updatedDoc = await db.collection("swapRequests").doc(id).get();
     return res.json({ id, ...updatedDoc.data() });
   } catch (err) {
     console.error("Error accepting swap request:", err);
