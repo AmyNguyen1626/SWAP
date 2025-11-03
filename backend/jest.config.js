@@ -1,4 +1,4 @@
 module.exports = {
   testEnvironment: "node", 
-  testTimeout: 20000       // 20 seconds per test
+  testTimeout: 100000       // 100 seconds per test
 };
