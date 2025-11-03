@@ -2,10 +2,11 @@ const express = require("express");
 const { admin, db } = require("../firebase");
 const { verifyToken } = require("../middleware/authMiddleware");
 const { upload, uploadFiles } = require("../utils/cloudinaryUploader");
+const fs = require("fs");
 const router = express.Router();
 
 // POST /api/listings
-router.post("/", verifyToken, upload.array("images", 10), async (req, res) => {
+router.post("/", verifyToken, (req, res, next) => upload.array("images", 10)(req, res, next), async (req, res) => {
   // req.user populated by verifyToken middleware (decoded token)
   try {
     const { listingName, price, condition, location, description } = req.body;

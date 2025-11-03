@@ -45,11 +45,6 @@ router.post("/", verifyToken, upload.array("evidence", 10), async (req, res) => 
             }
         }
 
-        // await admin.auth().updateUser(targetUid, { disabled: true });
-
-        // const reportedUser = await admin.auth().getUser(targetUid);
-        // await sendSuspensionEmail(reportedUser.email, reason);
-
         res.status(200).json({ message: "Report submitted and account locked", evidence: evidenceUrls });
     } catch (err) {
         console.error(err);
