@@ -5,7 +5,7 @@ import { useNotifications } from "../contexts/NotificationContext";
 import { markReceivedRequestsAsViewed, markSentRequestsAsViewed, markRequestAsViewed } from "../services/notificationService";
 import { useNavigate } from "react-router-dom";
 import NotificationBadge from "../components/NotificationBadge";
-import "./profile.css";
+import "./Profile.css";
 
 export default function Profile() {
     const { currentUser } = useAuth();

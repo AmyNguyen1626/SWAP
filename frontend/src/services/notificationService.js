@@ -1,5 +1,6 @@
-// Frontend notification service
-import { getIdToken } from "firebase/auth";
+import axios from "axios";
+
+const NOTIFICATION_API_URL = "http://localhost:3000/api/notifications";
 
 /**
  * Fetch unread notification counts for the current user
@@ -8,17 +9,12 @@ import { getIdToken } from "firebase/auth";
  */
 export async function getNotificationCounts(token) {
     try {
-        const res = await fetch("http://localhost:3000/api/notifications/counts", {
-            headers: {
-                Authorization: `Bearer ${token}`,
-            },
+        const response = await axios.get(`${NOTIFICATION_API_URL}/counts`, {
+            headers: { Authorization: `Bearer ${token}` },
         });
-
-        if (!res.ok) throw new Error("Failed to fetch notification counts");
-
-        return await res.json();
+        return response.data;
     } catch (err) {
-        console.error("Error fetching notification counts:", err);
+        console.error("Error fetching notification counts:", err.response?.data || err.message);
         throw err;
     }
 }
@@ -30,18 +26,14 @@ export async function getNotificationCounts(token) {
  */
 export async function markMessagesAsRead(convoId, token) {
     try {
-        const res = await fetch(`http://localhost:3000/api/notifications/messages/${convoId}/read`, {
-            method: "POST",
-            headers: {
-                Authorization: `Bearer ${token}`,
-            },
-        });
-
-        if (!res.ok) throw new Error("Failed to mark messages as read");
-
-        return await res.json();
+        const response = await axios.post(
+            `${NOTIFICATION_API_URL}/messages/${convoId}/read`,
+            {},
+            { headers: { Authorization: `Bearer ${token}` } }
+        );
+        return response.data;
     } catch (err) {
-        console.error("Error marking messages as read:", err);
+        console.error("Error marking messages as read:", err.response?.data || err.message);
         throw err;
     }
 }
@@ -53,18 +45,14 @@ export async function markMessagesAsRead(convoId, token) {
  */
 export async function markRequestAsViewed(requestId, token) {
     try {
-        const res = await fetch(`http://localhost:3000/api/notifications/requests/${requestId}/viewed`, {
-            method: "POST",
-            headers: {
-                Authorization: `Bearer ${token}`,
-            },
-        });
-
-        if (!res.ok) throw new Error("Failed to mark request as viewed");
-
-        return await res.json();
+        const response = await axios.post(
+            `${NOTIFICATION_API_URL}/requests/${requestId}/viewed`,
+            {},
+            { headers: { Authorization: `Bearer ${token}` } }
+        );
+        return response.data;
     } catch (err) {
-        console.error("Error marking request as viewed:", err);
+        console.error("Error marking request as viewed:", err.response?.data || err.message);
         throw err;
     }
 }
@@ -75,18 +63,14 @@ export async function markRequestAsViewed(requestId, token) {
  */
 export async function markReceivedRequestsAsViewed(token) {
     try {
-        const res = await fetch("http://localhost:3000/api/notifications/requests/received/view-all", {
-            method: "POST",
-            headers: {
-                Authorization: `Bearer ${token}`,
-            },
-        });
-
-        if (!res.ok) throw new Error("Failed to mark received requests as viewed");
-
-        return await res.json();
+        const response = await axios.post(
+            `${NOTIFICATION_API_URL}/requests/received/view-all`,
+            {},
+            { headers: { Authorization: `Bearer ${token}` } }
+        );
+        return response.data;
     } catch (err) {
-        console.error("Error marking received requests as viewed:", err);
+        console.error("Error marking received requests as viewed:", err.response?.data || err.message);
         throw err;
     }
 }
@@ -97,18 +81,14 @@ export async function markReceivedRequestsAsViewed(token) {
  */
 export async function markSentRequestsAsViewed(token) {
     try {
-        const res = await fetch("http://localhost:3000/api/notifications/requests/sent/view-all", {
-            method: "POST",
-            headers: {
-                Authorization: `Bearer ${token}`,
-            },
-        });
-
-        if (!res.ok) throw new Error("Failed to mark sent requests as viewed");
-
-        return await res.json();
+        const response = await axios.post(
+            `${NOTIFICATION_API_URL}/requests/sent/view-all`,
+            {},
+            { headers: { Authorization: `Bearer ${token}` } }
+        );
+        return response.data;
     } catch (err) {
-        console.error("Error marking sent requests as viewed:", err);
+        console.error("Error marking sent requests as viewed:", err.response?.data || err.message);
         throw err;
     }
 }

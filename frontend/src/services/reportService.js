@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = "http://localhost:3000/api";
+const REPORT_API_URL = "http://localhost:3000/api/reports";
 
 // Submit a report
 export async function reportUser(token, reportData, evidenceFiles = []) {
@@ -12,7 +12,7 @@ export async function reportUser(token, reportData, evidenceFiles = []) {
     evidenceFiles.forEach(file => formData.append("evidence", file));
 
     try {
-        const res = await axios.post(`${API_URL}/reports`, formData, {
+        const res = await axios.post(`${REPORT_API_URL}`, formData, {
             headers: {
                 Authorization: `Bearer ${token}`,
                 "Content-Type": "multipart/form-data",

@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { getIdToken } from "firebase/auth";
 import { useAuth } from "../contexts/useAuth";
 import SwapRequestModal from "../components/SwapRequestModal";
 import "./ListingDetail.css";
+import { fetchListingById } from "../services/listingService";
+import { checkWishlist, toggleWishlist } from "../services/wishlistService";
 
 export default function ListingDetail() {
     const { id } = useParams();
@@ -18,51 +19,25 @@ export default function ListingDetail() {
     const [wishlistLoading, setWishlistLoading] = useState(false);
 
     useEffect(() => {
-        async function fetchListing() {
+        async function loadListing() {
             setLoading(true);
             try {
-                const response = await fetch(`http://localhost:3000/api/listings/${id}`);
-                
-                if (!response.ok) {
-                    throw new Error("Listing not found");
-                }
-                
-                const data = await response.json();
+                const data = await fetchListingById(id);
                 setListing(data);
 
-                // Check if in wishlist (only if user is logged in)
                 if (currentUser) {
-                    checkWishlistStatus();
+                    const inWishlist = await checkWishlist(currentUser, id);
+                    setIsInWishlist(inWishlist);
                 }
             } catch (err) {
-                setError(err.message);
+                setError(err.response?.data?.message || err.message || "Listing not found");
             } finally {
                 setLoading(false);
             }
         }
 
-        fetchListing();
+        loadListing();
     }, [id, currentUser]);
-
-    async function checkWishlistStatus() {
-        if (!currentUser) return;
-
-        try {
-            const token = await getIdToken(currentUser);
-            const response = await fetch(`http://localhost:3000/api/wishlist/check/${id}`, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                setIsInWishlist(data.inWishlist);
-            }
-        } catch (err) {
-            console.error("Error checking wishlist status:", err);
-        }
-    }
 
     async function handleToggleWishlist() {
         if (!currentUser) {
@@ -74,36 +49,11 @@ export default function ListingDetail() {
         setWishlistLoading(true);
 
         try {
-            const token = await getIdToken(currentUser);
-
-            if (isInWishlist) {
-                // Remove from wishlist
-                const response = await fetch(`http://localhost:3000/api/wishlist/listing/${id}`, {
-                    method: "DELETE",
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                });
-
-                if (!response.ok) throw new Error("Failed to remove from wishlist");
-                setIsInWishlist(false);
-            } else {
-                // Add to wishlist
-                const response = await fetch("http://localhost:3000/api/wishlist", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${token}`,
-                    },
-                    body: JSON.stringify({ listingId: id }),
-                });
-
-                if (!response.ok) throw new Error("Failed to add to wishlist");
-                setIsInWishlist(true);
-            }
+            const updatedStatus = await toggleWishlist(currentUser, id, isInWishlist);
+            setIsInWishlist(updatedStatus);
         } catch (err) {
-            console.error("Error toggling wishlist:", err);
-            alert("Failed to update wishlist: " + err.message);
+            console.error(err);
+            alert("Failed to update wishlist: " + (err.response?.data?.message || err.message));
         } finally {
             setWishlistLoading(false);
         }
@@ -116,7 +66,6 @@ export default function ListingDetail() {
             return;
         }
 
-        // Check if trying to request own listing
         if (listing.userId === currentUser.uid) {
             alert("You cannot request your own listing");
             return;
@@ -160,26 +109,20 @@ export default function ListingDetail() {
 
     return (
         <div className="listing-detail-container">
-            {/* Back Button */}
             <button className="back-button" onClick={() => navigate("/browse")}>
                 ← Back to Browse
             </button>
 
-            {/* Main Content */}
             <div className="listing-detail-content">
-                
-                {/* Left Column - Images */}
                 <div className="listing-images-section">
-                    {/* Main Image */}
                     <div className="main-image-container">
-                        <img 
-                            src={listing.images[selectedImageIndex]} 
+                        <img
+                            src={listing.images[selectedImageIndex]}
                             alt={`${listing.listingName} - Image ${selectedImageIndex + 1}`}
                             className="main-image"
                         />
                     </div>
 
-                    {/* Thumbnail Gallery */}
                     {listing.images.length > 1 && (
                         <div className="thumbnail-gallery">
                             {listing.images.map((image, index) => (
@@ -195,13 +138,10 @@ export default function ListingDetail() {
                     )}
                 </div>
 
-                {/* Right Column - Details */}
                 <div className="listing-info-section">
-                    {/* Title */}
                     <div className="listing-header">
                         <h1 className="listing-title">{mainTitle}</h1>
 
-                        {/* Suspended warning */}
                         {listing.suspended && (
                             <p className="listing-suspended-warning">
                                 ⚠️ This listing's owner account is suspended. You cannot request or save this listing.
@@ -215,7 +155,6 @@ export default function ListingDetail() {
                         )}
                     </div>
 
-                    {/* Key Specs Grid */}
                     <div className="specs-grid">
                         <div className="spec-item">
                             <span className="spec-label">Odometer</span>
@@ -251,23 +190,21 @@ export default function ListingDetail() {
                         </div>
                     </div>
 
-                    {/* Description */}
                     <div className="description-section">
                         <h3>Description</h3>
                         <p>{listing.description}</p>
                     </div>
 
-                    {/* Action Buttons */}
                     {!isOwnListing && (
                         <div className="action-buttons">
-                            <button 
+                            <button
                                 className="contact-button primary"
                                 onClick={handleRequestClick}
                                 disabled={listing.suspended}
                             >
                                 Request Swap or Buy
                             </button>
-                            <button 
+                            <button
                                 className={`save-button ${isInWishlist ? 'saved' : ''}`}
                                 onClick={handleToggleWishlist}
                                 disabled={wishlistLoading || listing.suspended}
@@ -279,13 +216,13 @@ export default function ListingDetail() {
 
                     {isOwnListing && (
                         <div className="action-buttons">
-                            <button 
+                            <button
                                 className="edit-button"
                                 onClick={() => navigate(`/listing/${id}/edit`)}
                             >
                                 Edit Listing
                             </button>
-                            <button 
+                            <button
                                 className="view-requests-button"
                                 onClick={() => navigate("/profile", { state: { activeTab: "received-requests" } })}
                             >
@@ -296,7 +233,6 @@ export default function ListingDetail() {
                 </div>
             </div>
 
-            {/* Swap Request Modal */}
             {showSwapModal && (
                 <SwapRequestModal
                     targetListing={listing}

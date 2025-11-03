@@ -1,12 +1,12 @@
 import axios from "axios";
 import { getIdToken } from "firebase/auth";
 
-const API_BASE = "http://localhost:3000/api/listings";
+const LISTING_API_BASE = "http://localhost:3000/api/listings";
 
 // Create new listing
 export async function createListing(listingData, token) {
   try {
-    const response = await axios.post(API_BASE, listingData, {
+    const response = await axios.post(LISTING_API_BASE, listingData, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -21,7 +21,7 @@ export async function createListing(listingData, token) {
 // Fetch all listings
 export async function fetchListings() {
   try {
-    const response = await axios.get(API_BASE);
+    const response = await axios.get(LISTING_API_BASE);
     return response.data;
   } catch (err) {
     console.error("Error fetching listings:", err.response?.data || err.message);
@@ -32,7 +32,7 @@ export async function fetchListings() {
 // Edit an existing listing
 export async function editListing(listingId, listingData, token) {
   try {
-    const response = await axios.patch(`${API_BASE}/${listingId}`, listingData, {
+    const response = await axios.patch(`${LISTING_API_BASE}/${listingId}`, listingData, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -50,7 +50,7 @@ export async function fetchUserListings(currentUser, excludeListingId) {
 
   try {
     const token = await getIdToken(currentUser);
-    const response = await axios.get(`${API_BASE}/user/my-listings`, {
+    const response = await axios.get(`${LISTING_API_BASE}/user/my-listings`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -65,3 +65,14 @@ export async function fetchUserListings(currentUser, excludeListingId) {
     throw err;
   }
 }
+
+// Fetch listing by Id
+export async function fetchListingById(listingId) {
+  try {
+    const response = await axios.get(`${LISTING_API_BASE}/${listingId}`);
+    return response.data;
+  } catch (err) {
+    console.error("Error fetching listing by ID:", err.response?.data || err.message);
+    throw err;
+  }
+} 
