@@ -1,11 +1,11 @@
 import axios from "axios";
 
-const API_URL = "http://localhost:3000/api";
+const MESSAGE_API_URL = "http://localhost:3000/api/conversations";
 
 // Get all conversations for the current user
 export async function getConversations(token, params = {}) {
     try {
-        const res = await axios.get(`${API_URL}/conversations`, {
+        const res = await axios.get(`${MESSAGE_API_URL}`, {
             headers: { Authorization: `Bearer ${token}` },
             params,
         });
@@ -19,7 +19,7 @@ export async function getConversations(token, params = {}) {
 // Get messages for a specific conversation
 export async function getMessages(convoId, token, params = {}) {
     try {
-        const res = await axios.get(`${API_URL}/conversations/${convoId}/messages`, {
+        const res = await axios.get(`${MESSAGE_API_URL}/${convoId}/messages`, {
             headers: { Authorization: `Bearer ${token}` },
             params,
         });
@@ -34,7 +34,7 @@ export async function getMessages(convoId, token, params = {}) {
 export async function sendMessage(convoId, text, token) {
     try {
         const res = await axios.post(
-            `${API_URL}/conversations/${convoId}/messages`,
+            `${MESSAGE_API_URL}/${convoId}/messages`,
             { text },
             { headers: { Authorization: `Bearer ${token}` } }
         );
@@ -49,7 +49,7 @@ export async function sendMessage(convoId, text, token) {
 export async function createConversation(listingId, participants, token, initialMessage) {
     try {
         const res = await axios.post(
-            `${API_URL}/conversations`,
+            `${MESSAGE_API_URL}`,
             { listingId, participants, initialMessage },
             { headers: { Authorization: `Bearer ${token}` } }
         );

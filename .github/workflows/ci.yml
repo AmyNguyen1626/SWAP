@@ -33,7 +33,7 @@ jobs:
           cd backend
           npm install
 
-      - name: Run tests
+      - name: Run Jest tests
         run: |
           cd backend
           npm test

@@ -3,6 +3,10 @@ import { getIdToken } from "firebase/auth";
 import { useAuth } from "../contexts/useAuth";
 import { useNotifications } from "../contexts/NotificationContext";
 import { markReceivedRequestsAsViewed, markSentRequestsAsViewed, markRequestAsViewed } from "../services/notificationService";
+import { fetchUserListings, deleteListing } from "../services/listingService";
+import { getReceivedRequests, getSentRequests, acceptRequest, rejectRequest, cancelRequest } from "../services/swapRequestService";
+import { getWishlist, removeFromWishlist } from "../services/wishlistService";
+import { fetchUserProfile } from "../services/profileService";
 import { useNavigate } from "react-router-dom";
 import NotificationBadge from "../components/NotificationBadge";
 import "./Profile.css";
@@ -11,23 +15,24 @@ export default function Profile() {
     const { currentUser } = useAuth();
     const { notificationCounts, refreshNotifications } = useNotifications();
     const navigate = useNavigate();
+
     const [profile, setProfile] = useState(null);
     const [error, setError] = useState("");
     const [activeTab, setActiveTab] = useState("listings");
-    
+
     const [myListings, setMyListings] = useState([]);
     const [receivedRequests, setReceivedRequests] = useState([]);
     const [sentRequests, setSentRequests] = useState([]);
     const [wishlist, setWishlist] = useState([]);
-    
+
     const [loading, setLoading] = useState(false);
     const [listingsLoading, setListingsLoading] = useState(false);
     const [requestsLoading, setRequestsLoading] = useState(false);
     const [wishlistLoading, setWishlistLoading] = useState(false);
-    
+
     const [showSwapModal, setShowSwapModal] = useState(false);
     const [selectedTargetListing, setSelectedTargetListing] = useState(null);
-    
+
     const [showContactModal, setShowContactModal] = useState(false);
     const [selectedRequest, setSelectedRequest] = useState(null);
     const [contactInfo, setContactInfo] = useState({ email: "", phone: "" });
@@ -70,35 +75,25 @@ export default function Profile() {
     const handleAcceptRequestAction = async (requestId) => {
         try {
             const token = await currentUser.getIdToken();
-            
-            // Accept the request (existing logic)
-            const response = await fetch(`http://localhost:3000/api/swap-requests/${requestId}/accept`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify({ contactInfo }),
-            });
-            
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || "Failed to accept request");
-            }
-            
+
+            // Accept the request 
+            await acceptRequest(currentUser, requestId, contactInfo);
+
             // Update received requests status locally
-            const updatedRequests = receivedRequests.map(req => 
-                req.id === requestId ? { ...req, status: "accepted", contactInfo } : req
+            const updatedRequests = receivedRequests.map(req =>
+                req.id === requestId
+                    ? { ...req, status: "accepted", contactInfo }
+                    : req
             );
-            
+
             setReceivedRequests(updatedRequests);
-            
+
             // Mark as viewed
             await markRequestAsViewed(requestId, token);
-            
+
             // Refresh notifications
             await refreshNotifications();
-            
+
             return true;
         } catch (err) {
             console.error("Error accepting request:", err);
@@ -109,53 +104,38 @@ export default function Profile() {
     const handleRejectRequestAction = async (requestId) => {
         try {
             const token = await currentUser.getIdToken();
-            
-            // Reject the request (existing logic)
-            const response = await fetch(`http://localhost:3000/api/swap-requests/${requestId}/reject`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-            });
-            
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || "Failed to reject request");
-            }
-            
+
+            // Reject the request 
+            await rejectRequest(currentUser, requestId);
+
             // Update received requests status locally
-            const updatedRequests = receivedRequests.map(req => 
+            const updatedRequests = receivedRequests.map(req =>
                 req.id === requestId ? { ...req, status: "rejected" } : req
             );
-            
+
             setReceivedRequests(updatedRequests);
-            
+
             // Mark as viewed
             await markRequestAsViewed(requestId, token);
-            
+
             // Refresh notifications
             await refreshNotifications();
-            
+
             return true;
         } catch (err) {
             console.error("Error rejecting request:", err);
             throw err;
         }
     };
-    
+
     useEffect(() => {
         async function fetchProfile() {
             try {
                 setLoading(true);
                 const token = await getIdToken(currentUser);
-                const res = await fetch("http://localhost:3000/users/profile", {
-                    headers: { Authorization: `Bearer ${token}` },
-                });
-                if (!res.ok) throw new Error("Failed to fetch profile");
-                const data = await res.json();
-                setProfile(data.user);
-                setContactInfo({ email: data.user.email || "", phone: "" });
+                const user = await fetchUserProfile(token);
+                setProfile(user);
+                setContactInfo({ email: user.email || "", phone: "" });
             } catch (err) {
                 setError(err.message);
             } finally {
@@ -184,12 +164,7 @@ export default function Profile() {
     async function fetchMyListings() {
         try {
             setListingsLoading(true);
-            const token = await getIdToken(currentUser);
-            const res = await fetch("http://localhost:3000/api/listings/user/my-listings", {
-                headers: { Authorization: `Bearer ${token}` },
-            });
-            if (!res.ok) throw new Error("Failed to fetch listings");
-            const data = await res.json();
+            const data = await fetchUserListings(currentUser);
             setMyListings(data);
         } catch (err) {
             console.error("Error fetching listings:", err);
@@ -202,12 +177,7 @@ export default function Profile() {
     async function fetchReceivedRequests() {
         try {
             setRequestsLoading(true);
-            const token = await getIdToken(currentUser);
-            const res = await fetch("http://localhost:3000/api/swap-requests/received", {
-                headers: { Authorization: `Bearer ${token}` },
-            });
-            if (!res.ok) throw new Error("Failed to fetch received requests");
-            const data = await res.json();
+            const data = await getReceivedRequests(currentUser);
             setReceivedRequests(data);
         } catch (err) {
             console.error("Error fetching received requests:", err);
@@ -220,12 +190,8 @@ export default function Profile() {
     async function fetchSentRequests() {
         try {
             setRequestsLoading(true);
-            const token = await getIdToken(currentUser);
-            const res = await fetch("http://localhost:3000/api/swap-requests/sent", {
-                headers: { Authorization: `Bearer ${token}` },
-            });
-            if (!res.ok) throw new Error("Failed to fetch sent requests");
-            const data = await res.json();
+
+            const data = await getSentRequests(currentUser);
             setSentRequests(data);
         } catch (err) {
             console.error("Error fetching sent requests:", err);
@@ -238,12 +204,8 @@ export default function Profile() {
     async function fetchWishlist() {
         try {
             setWishlistLoading(true);
-            const token = await getIdToken(currentUser);
-            const res = await fetch("http://localhost:3000/api/wishlist", {
-                headers: { Authorization: `Bearer ${token}` },
-            });
-            if (!res.ok) throw new Error("Failed to fetch wishlist");
-            const data = await res.json();
+
+            const data = await getWishlist(currentUser);
             setWishlist(data);
         } catch (err) {
             console.error("Error fetching wishlist:", err);
@@ -256,12 +218,7 @@ export default function Profile() {
     async function handleDeleteListing(listingId) {
         if (!confirm("Are you sure you want to delete this listing?")) return;
         try {
-            const token = await getIdToken(currentUser);
-            const res = await fetch(`http://localhost:3000/api/listings/${listingId}`, {
-                method: "DELETE",
-                headers: { Authorization: `Bearer ${token}` },
-            });
-            if (!res.ok) throw new Error("Failed to delete listing");
+            await deleteListing(currentUser, listingId);
             setMyListings(myListings.filter(listing => listing.id !== listingId));
         } catch (err) {
             console.error("Error deleting listing:", err);
@@ -271,12 +228,7 @@ export default function Profile() {
 
     async function handleRemoveFromWishlist(wishlistId) {
         try {
-            const token = await getIdToken(currentUser);
-            const res = await fetch(`http://localhost:3000/api/wishlist/${wishlistId}`, {
-                method: "DELETE",
-                headers: { Authorization: `Bearer ${token}` },
-            });
-            if (!res.ok) throw new Error("Failed to remove from wishlist");
+            await removeFromWishlist(currentUser, wishlistId);
             setWishlist(wishlist.filter(item => item.id !== wishlistId));
         } catch (err) {
             console.error("Error removing from wishlist:", err);
@@ -291,7 +243,7 @@ export default function Profile() {
 
     async function confirmAcceptRequest() {
         if (!selectedRequest || !contactInfo.email) return;
-        
+
         try {
             await handleAcceptRequestAction(selectedRequest.id);
             setShowContactModal(false);
@@ -303,7 +255,7 @@ export default function Profile() {
 
     async function handleRejectRequest(requestId) {
         if (!confirm("Are you sure you want to reject this request?")) return;
-        
+
         try {
             await handleRejectRequestAction(requestId);
             alert("Request rejected successfully");
@@ -315,26 +267,14 @@ export default function Profile() {
     async function handleCancelRequest(requestId) {
         if (!confirm("Are you sure you want to cancel this request?")) return;
         try {
-            const token = await getIdToken(currentUser);
-            
-            const response = await fetch(`http://localhost:3000/api/swap-requests/${requestId}`, {
-                method: 'DELETE',
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            });
-            
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || "Failed to cancel request");
-            }
-            
+            await cancelRequest(currentUser, requestId); 
+
             // Remove the request from the list
             setSentRequests(sentRequests.filter(req => req.id !== requestId));
-            
+
             // Show success message
             alert("Request cancelled successfully");
-            
+
         } catch (err) {
             console.error("Error cancelling request:", err);
             alert(`Error cancelling request: ${err.message}`);
@@ -348,7 +288,7 @@ export default function Profile() {
     if (error) {
         return <div className="error">Error: {error}</div>;
     }
-    
+
     return (
         <div className="profile-container">
             <div className="profile-header-section">
@@ -356,28 +296,28 @@ export default function Profile() {
             </div>
 
             <div className="tabs">
-                <button 
-                    className={`tab ${activeTab === "listings" ? "active" : ""}`} 
+                <button
+                    className={`tab ${activeTab === "listings" ? "active" : ""}`}
                     onClick={() => setActiveTab("listings")}
                 >
                     My Listings
                 </button>
-                <button 
-                    className={`tab tab-with-badge ${activeTab === "received-requests" ? "active" : ""}`} 
+                <button
+                    className={`tab tab-with-badge ${activeTab === "received-requests" ? "active" : ""}`}
                     onClick={() => setActiveTab("received-requests")}
                 >
                     Received Requests
                     <NotificationBadge count={notificationCounts.unviewedReceivedRequests} />
                 </button>
-                <button 
-                    className={`tab tab-with-badge ${activeTab === "sent-requests" ? "active" : ""}`} 
+                <button
+                    className={`tab tab-with-badge ${activeTab === "sent-requests" ? "active" : ""}`}
                     onClick={() => setActiveTab("sent-requests")}
                 >
                     Sent Requests
                     <NotificationBadge count={notificationCounts.unviewedSentRequests} />
                 </button>
-                <button 
-                    className={`tab ${activeTab === "wishlist" ? "active" : ""}`} 
+                <button
+                    className={`tab ${activeTab === "wishlist" ? "active" : ""}`}
                     onClick={() => setActiveTab("wishlist")}
                 >
                     Wishlist
@@ -595,7 +535,7 @@ export default function Profile() {
                             <input
                                 type="email"
                                 value={contactInfo.email}
-                                onChange={(e) => setContactInfo({...contactInfo, email: e.target.value})}
+                                onChange={(e) => setContactInfo({ ...contactInfo, email: e.target.value })}
                                 placeholder="your@email.com"
                             />
                         </div>
@@ -604,7 +544,7 @@ export default function Profile() {
                             <input
                                 type="tel"
                                 value={contactInfo.phone}
-                                onChange={(e) => setContactInfo({...contactInfo, phone: e.target.value})}
+                                onChange={(e) => setContactInfo({ ...contactInfo, phone: e.target.value })}
                                 placeholder="(555) 123-4567"
                             />
                         </div>

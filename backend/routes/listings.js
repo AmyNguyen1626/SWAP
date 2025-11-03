@@ -2,10 +2,11 @@ const express = require("express");
 const { admin, db } = require("../firebase");
 const { verifyToken } = require("../middleware/authMiddleware");
 const { upload, uploadFiles } = require("../utils/cloudinaryUploader");
+const fs = require("fs");
 const router = express.Router();
 
 // POST /api/listings
-router.post("/", verifyToken, upload.array("images", 10), async (req, res) => {
+router.post("/", verifyToken, (req, res, next) => upload.array("images", 10)(req, res, next), async (req, res) => {
   // req.user populated by verifyToken middleware (decoded token)
   try {
     const { listingName, price, condition, location, description } = req.body;
@@ -113,29 +114,25 @@ router.get("/:id", async (req, res) => {
 });
 
 // UPDATE listing
-router.patch("/:id", verifyToken, async (req, res) => {
+router.patch("/:id", verifyToken, upload.array("images", 10), async (req, res) => {
   try {
     const { id } = req.params;
-    const userId = req.user.uid || req.user.claims?.user_id || req.user.user_id;
-    const updates = req.body;
-
-    // Get the listing to check ownership
+    const userId = req.user.uid;
     const listingDoc = await db.collection("listings").doc(id).get();
-    if (!listingDoc.exists) {
-      return res.status(404).json({ error: "Listing not found" });
-    }
-
+    if (!listingDoc.exists) return res.status(404).json({ error: "Listing not found" });
     const listingData = listingDoc.data();
-    if (listingData.userId !== userId) {
-      return res.status(403).json({ error: "Unauthorized to update this listing" });
+    if (listingData.userId !== userId) return res.status(403).json({ error: "Unauthorized" });
+
+    const updates = { ...req.body };
+    if (updates.category) updates.category = JSON.parse(updates.category);
+
+    // Handle new images
+    if (req.files && req.files.length > 0) {
+      const imageUrls = await uploadFiles(req.files, "swap-listings");
+      updates.images = imageUrls; // replace or merge as you wish
     }
 
-    // Update the listing
-    await db.collection("listings").doc(id).update({
-      ...updates,
-      updatedAt: new Date().toISOString()
-    });
-
+    await db.collection("listings").doc(id).update({ ...updates, updatedAt: new Date().toISOString() });
     const updatedDoc = await db.collection("listings").doc(id).get();
     res.json({ id: updatedDoc.id, ...updatedDoc.data() });
   } catch (err) {
