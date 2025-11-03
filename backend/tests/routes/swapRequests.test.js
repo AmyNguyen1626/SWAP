@@ -2,7 +2,7 @@ const request = require("supertest");
 const express = require("express");
 
 // Mock middleware
-jest.mock("../middleware/authMiddleware", () => ({
+jest.mock("../../middleware/authMiddleware", () => ({
     verifyToken: jest.fn((req, res, next) => {
         req.user = { uid: "user123" };
         next();
@@ -11,7 +11,7 @@ jest.mock("../middleware/authMiddleware", () => ({
 
 // Setup express
 const app = express();
-const swapRouter = require("../routes/swapRequests");
+const swapRouter = require("../../routes/swapRequests");
 app.use(express.json());
 app.use("/api/swapRequests", swapRouter);
 
@@ -22,7 +22,7 @@ describe("Swap Requests API", () => {
     let swapRequestId;
 
     beforeAll(async () => {
-        const { db } = require("../firebase");
+        const { db } = require("../../firebase");
 
         // Create target listing (owned by someone else)
         await db.collection("listings").doc(targetListingId).set({
@@ -69,7 +69,7 @@ describe("Swap Requests API", () => {
     describe("GET api/swapRequests/received", () => {
         it("should fetch received requests for target owner", async () => {
             // Mock token as owner456
-            const { verifyToken } = require("../middleware/authMiddleware");
+            const { verifyToken } = require("../../middleware/authMiddleware");
             verifyToken.mockImplementationOnce((req, res, next) => {
                 req.user = { uid: "owner456" };
                 next();
@@ -85,7 +85,7 @@ describe("Swap Requests API", () => {
 
     describe("POST api/swapRequests/sent/swapRequestId/accept", () => {
         it("should accept a swap request", async () => {
-            const { verifyToken } = require("../middleware/authMiddleware");
+            const { verifyToken } = require("../../middleware/authMiddleware");
             verifyToken.mockImplementationOnce((req, res, next) => {
                 req.user = { uid: "owner456" };
                 next();
@@ -103,7 +103,7 @@ describe("Swap Requests API", () => {
     describe("POST api/swapRequests/sent/swapRequestId/reject", () => {
         it("should reject a swap request", async () => {
             // Create new swap request to test reject
-            const { db } = require("../firebase");
+            const { db } = require("../../firebase");
             const newReq = await db.collection("swapRequests").add({
                 senderId: "user123",
                 receiverId: "owner456",
@@ -115,7 +115,7 @@ describe("Swap Requests API", () => {
                 createdAt: new Date().toISOString(),
             });
 
-            const { verifyToken } = require("../middleware/authMiddleware");
+            const { verifyToken } = require("../../middleware/authMiddleware");
             verifyToken.mockImplementationOnce((req, res, next) => {
                 req.user = { uid: "owner456" };
                 next();
@@ -133,7 +133,7 @@ describe("Swap Requests API", () => {
     describe("DELETE api/swapRequests/swapRequestId", () => {
         it("should cancel a swap request", async () => {
             // Create new swap request to test cancel
-            const { db } = require("../firebase");
+            const { db } = require("../../firebase");
             const newReq = await db.collection("swapRequests").add({
                 senderId: "user123",
                 receiverId: "owner456",

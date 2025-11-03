@@ -3,7 +3,7 @@ const express = require("express");
 
 // MOCK DEPENDENCIES
 // Mock middleware
-jest.mock("../middleware/authMiddleware", () => ({
+jest.mock("../../middleware/authMiddleware", () => ({
     verifyToken: jest.fn((req, res, next) => {
         req.user = { uid: "user123" };
         next();
@@ -12,7 +12,7 @@ jest.mock("../middleware/authMiddleware", () => ({
 
 // Setup express
 const app = express();
-const wishlistRouter = require("../routes/wishlist");
+const wishlistRouter = require("../../routes/wishlist");
 app.use(express.json());
 app.use("/api/wishlist", wishlistRouter);
 
@@ -23,7 +23,7 @@ describe("wishlist API", () => {
 
     beforeAll(async () => {
         // Pre-populate a listing in mock DB
-        const { db } = require("../firebase");
+        const { db } = require("../../firebase");
         await db.collection("listings").doc(listingId).set({ title: "Test Listing", userId: "owner1" });
     });
 

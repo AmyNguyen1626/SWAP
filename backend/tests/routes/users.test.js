@@ -43,7 +43,7 @@ jest.mock("firebase-admin", () => {
 
 // Setup express
 const request = require("supertest");
-const app = require("../app.js");
+const app = require("../../app.js");
 
 // TEST CASES
 describe("users API", () => {

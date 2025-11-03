@@ -3,7 +3,7 @@ const express = require("express");
 
 // MOCK DEPENDENCIES
 // Mock Firebase
-jest.mock("../firebase", () => {
+jest.mock("../../firebase", () => {
     const conversations = {
         mockConvoId: {
             participants: ["user123", "user456"],
@@ -98,7 +98,7 @@ jest.mock("../firebase", () => {
 });
 
 // Mock verifyToken middleware
-jest.mock("../middleware/authMiddleware", () => ({
+jest.mock("../../middleware/authMiddleware", () => ({
     verifyToken: jest.fn((req, res, next) => {
         req.user = { uid: "user123" };
         next();
@@ -107,7 +107,7 @@ jest.mock("../middleware/authMiddleware", () => ({
 
 // Setup express
 const app = express();
-const conversationsRouter = require("../routes/conversations");
+const conversationsRouter = require("../../routes/conversations");
 app.use(express.json());
 app.use("/api/conversations", conversationsRouter);
 

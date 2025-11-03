@@ -2,7 +2,7 @@ const express = require("express");
 const request = require("supertest");
 
 // Mock the router module
-jest.mock("../routes/index", () => {
+jest.mock("../../routes/index", () => {
     const express = require("express");
     const router = express.Router();
 
@@ -15,7 +15,7 @@ jest.mock("../routes/index", () => {
 });
 
 // Import app and attach mocked router
-const indexRouter = require("../routes/index");
+const indexRouter = require("../../routes/index");
 const app = express();
 app.use("/", indexRouter);
 

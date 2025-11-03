@@ -3,7 +3,7 @@ const mockGetUser = jest.fn(async (uid) => ({ uid, email: 'user@test.com', disab
 const mockUpdateUser = jest.fn(async (uid, props) => ({ uid, ...props }));
 
 // Mock firebase
-jest.mock('../firebase', () => ({
+jest.mock('../../firebase', () => ({
     db: {
         collection: jest.fn(() => ({
             add: jest.fn(async () => ({ id: 'mock-report-id' })),
@@ -21,7 +21,7 @@ jest.mock('../firebase', () => ({
 }));
 
 // Mock authMiddleware
-jest.mock('../middleware/authMiddleware', () => ({
+jest.mock('../../middleware/authMiddleware', () => ({
     verifyToken: jest.fn((req, res, next) => {
         req.user = { uid: 'reporter123' };
         next();
@@ -29,7 +29,7 @@ jest.mock('../middleware/authMiddleware', () => ({
 }));
 
 // Mock Cloudinary 
-jest.mock('../utils/cloudinaryUploader', () => ({
+jest.mock('../../utils/cloudinaryUploader', () => ({
     uploadFiles: jest.fn(async (files) => files.map((f, i) => `http://mock.url/file${i}.jpg`)),
     upload: {
         array: jest.fn(() => (req, res, next) => {
@@ -40,14 +40,14 @@ jest.mock('../utils/cloudinaryUploader', () => ({
 }));
 
 // Mock email
-jest.mock('../utils/email', () => ({
+jest.mock('../../utils/email', () => ({
     sendSuspensionEmail: jest.fn(async () => true),
 }));
 
 // Setup express
 const request = require("supertest");
 const express = require("express");
-const reportRouter = require("../routes/reports");
+const reportRouter = require("../../routes/reports");
 
 const app = express();
 app.use(express.json());

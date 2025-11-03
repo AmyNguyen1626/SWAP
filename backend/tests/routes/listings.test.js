@@ -26,7 +26,7 @@ let mockListing = {
 };
 
 // Mock firebase
-jest.mock("../firebase", () => ({
+jest.mock("../../firebase", () => ({
     db: {
         collection: jest.fn(() => ({
             add: mockAdd,
@@ -70,7 +70,7 @@ jest.mock("fs", () => ({
 }));
 
 // Mock middleware
-jest.mock("../middleware/authMiddleware", () => ({
+jest.mock("../../middleware/authMiddleware", () => ({
     verifyToken: jest.fn((req, res, next) => {
         req.user = { uid: "user123" };
         next();
@@ -78,14 +78,14 @@ jest.mock("../middleware/authMiddleware", () => ({
 }));
 
 // Mock claudinary
-jest.mock('../utils/cloudinaryUploader', () => ({
+jest.mock('../../utils/cloudinaryUploader', () => ({
     uploadFiles: jest.fn(async (files) => files.map((f, i) => `http://mock.url/file${i}.jpg`)),
     upload: { array: mockUploadArray },
 }));
 
 // Setup express 
 const app = express();
-const listingsRouter = require("../routes/listings");
+const listingsRouter = require("../../routes/listings");
 app.use(express.json());
 app.use("/api/listings", listingsRouter);
 
