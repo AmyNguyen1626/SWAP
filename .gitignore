@@ -18,3 +18,4 @@ frontend/build/
 # tools 
 seedlistings.js
 TestSeed.jsx
+frontend/src/utils/seedlisting.js
