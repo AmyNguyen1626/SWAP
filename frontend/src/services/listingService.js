@@ -1,22 +1,19 @@
+import axios from "axios";
+import { getIdToken } from "firebase/auth";
+
+const LISTING_API_BASE = "http://localhost:3000/api/listings";
+
 // Create new listing
 export async function createListing(listingData, token) {
   try {
-    const response = await fetch("http://localhost:3000/api/listings", {
-      method: "POST",
+    const response = await axios.post(LISTING_API_BASE, listingData, {
       headers: {
-        Authorization: `Bearer ${token}`, // for protected route
+        Authorization: `Bearer ${token}`,
       },
-      body: listingData,
     });
-
-    if (!response.ok) {
-      throw new Error("Failed to create listing");
-    }
-
-    const data = await response.json();
-    return data;
+    return response.data;
   } catch (err) {
-    console.error("Error creating listing:", err);
+    console.error("Error creating listing:", err.response?.data || err.message);
     throw err;
   }
 }
@@ -24,42 +21,76 @@ export async function createListing(listingData, token) {
 // Fetch all listings
 export async function fetchListings() {
   try {
-    const response = await fetch("http://localhost:3000/api/listings", {
-      method: "GET",
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || "Failed to fetch listings");
-    }
-
-    const listings = await response.json();
-    return listings;
+    const response = await axios.get(LISTING_API_BASE);
+    return response.data;
   } catch (err) {
-    console.error("Error fetching listings:", err);
+    console.error("Error fetching listings:", err.response?.data || err.message);
     throw err;
   }
 }
 
-// Edit an exisiting listing
-
+// Edit an existing listing
 export async function editListing(listingId, listingData, token) {
   try {
-    const response = await fetch(`http://localhost:3000/api/listings/${listingId}`,{
-      method: "PATCH",
+    const response = await axios.patch(`${LISTING_API_BASE}/${listingId}`, listingData, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
-      body: listingData,
+    });
+    return response.data;
+  } catch (err) {
+    console.error("Error updating listing:", err.response?.data || err.message);
+    throw err;
+  }
+}
+
+// Fetch user listings
+export async function fetchUserListings(currentUser, { excludeListingId, onlyActive = true } = {}) {
+  if (!currentUser) throw new Error("No user logged in");
+
+  try {
+    const token = await getIdToken(currentUser);
+
+    const res = await axios.get(`${LISTING_API_BASE}/user/my-listings`, {
+      headers: { Authorization: `Bearer ${token}` },
     });
 
-    if(!response.ok){
-      throw new Error("Failed to Update Listing");
-    }
-    const data = await response.json();
-    return data;
+    // If server sends array directly
+    const listingsArray = Array.isArray(res.data) ? res.data : res.data.listings || [];
+
+    // Optionally filter listings
+    return listingsArray.filter((listing) => {
+      const notExcluded = !excludeListingId || listing.id !== excludeListingId;
+      const isActive = !onlyActive || listing.status === "active";
+      return notExcluded && isActive;
+    });
   } catch (err) {
-    console.error("Error Updating Listing:", err);
+    console.error("Error fetching user listings:", err.response?.data || err.message);
+    throw new Error("Failed to fetch user listings");
+  }
+}
+
+// Fetch listing by Id
+export async function fetchListingById(listingId) {
+  try {
+    const response = await axios.get(`${LISTING_API_BASE}/${listingId}`);
+    return response.data;
+  } catch (err) {
+    console.error("Error fetching listing by ID:", err.response?.data || err.message);
     throw err;
+  }
+}
+
+// Delete listing 
+export async function deleteListing(currentUser, listingId) {
+  if (!currentUser) throw new Error("No user logged in");
+  try {
+    const token = await getIdToken(currentUser);
+    await axios.delete(`${LISTING_API_BASE}/${listingId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  } catch (err) {
+    console.error("Error deleting listing:", err);
+    throw new Error(err.response?.data?.error || "Failed to delete listing");
   }
 }

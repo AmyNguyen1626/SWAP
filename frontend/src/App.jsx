@@ -10,7 +10,7 @@ import Register from "./components/Register.jsx";
 import CreateListingPage from "./pages/CreateListingPage.jsx";
 import ListingDetail from "./pages/ListingDetail.jsx";
 import ChatPage from "./pages/ChatPage.jsx";
-import EditListingForm from "./pages/EditListingForm.jsx";
+import EditListingForm from "./components/EditListingForm.jsx";
 
 function App() {
   return (

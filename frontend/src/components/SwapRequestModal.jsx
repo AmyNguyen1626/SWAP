@@ -1,17 +1,13 @@
 import { useState, useEffect } from "react";
-import { getIdToken } from "firebase/auth";
 import { useAuth } from "../contexts/useAuth";
 import "./SwapRequestModal.css";
 import { createConversation } from "../services/messageService";
+import { fetchUserListings } from "../services/listingService";
+import { createSwapRequest } from "../services/swapRequestService";
 
-export default function SwapRequestModal({
-    targetListing,
-    isOpen,
-    onClose,
-    onSuccess
-}) {
+export default function SwapRequestModal({ targetListing, isOpen, onClose, onSuccess }) {
     const { currentUser } = useAuth();
-    const [requestType, setRequestType] = useState("buy"); // 'buy' or 'swap'
+    const [requestType, setRequestType] = useState("buy");
     const [myListings, setMyListings] = useState([]);
     const [selectedListingId, setSelectedListingId] = useState("");
     const [message, setMessage] = useState("");
@@ -19,35 +15,16 @@ export default function SwapRequestModal({
     const [error, setError] = useState("");
 
     useEffect(() => {
-        if (isOpen && requestType === "swap") {
-            fetchMyListings();
-        }
+        if (isOpen && requestType === "swap") fetchMyListings();
     }, [isOpen, requestType]);
 
     async function fetchMyListings() {
         try {
-            const token = await getIdToken(currentUser);
-
-            const res = await fetch("http://localhost:3000/api/listings/user/my-listings", {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            });
-
-            if (!res.ok) throw new Error("Failed to fetch your listings");
-
-            const data = await res.json();
-            // Filter out the target listing
-            const availableListings = data.filter(
-                listing => listing.id !== targetListing.id && listing.status === "active"
-            );
-            setMyListings(availableListings);
-
-            if (availableListings.length > 0) {
-                setSelectedListingId(availableListings[0].id);
-            }
+            const listings = await fetchUserListings(currentUser, targetListing.id);
+            setMyListings(listings);
+            if (listings.length > 0) setSelectedListingId(listings[0].id);
         } catch (err) {
-            console.error("Error fetching listings:", err);
+            console.error(err);
             setError(err.message);
         }
     }
@@ -58,62 +35,27 @@ export default function SwapRequestModal({
         setLoading(true);
 
         try {
-            const token = await getIdToken(currentUser);
-
+            const token = await currentUser.getIdToken();
             const requestData = {
                 targetListingId: targetListing.id,
                 requestType,
-                message: message.trim()
+                message: message.trim(),
+                ...(requestType === "swap" && { offeredListingId: selectedListingId }),
             };
 
-            if (requestType === "swap") {
-                if (!selectedListingId) {
-                    setError("Please select a listing to offer");
-                    setLoading(false);
-                    return;
-                }
-                requestData.offeredListingId = selectedListingId;
-            }
-
-            // Send swap/buy request
-            const res = await fetch("http://localhost:3000/api/swap-requests", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify(requestData),
-            });
-
-            if (!res.ok) {
-                const errorData = await res.json();
-                throw new Error(errorData.error || "Failed to send request");
-            }
-
-            // Create conversation
-            const participants = [targetListing.userId, currentUser.uid];
-            const initialMsg = message.trim() || "";
+            await createSwapRequest(requestData, token);
 
             await createConversation(
-                {
-                    id: targetListing.id,
-                    listingName: targetListing.listingName
-                },
-                participants,
+                { id: targetListing.id, listingName: targetListing.listingName },
+                [targetListing.userId, currentUser.uid],
                 token,
-                initialMsg
+                message.trim()
             );
 
-            // Success
-            if (onSuccess) onSuccess();
-            onClose();
-
-            // Reset form
-            setRequestType("buy");
-            setMessage("");
-            setSelectedListingId("");
+            onSuccess?.();
+            handleClose();
         } catch (err) {
-            console.error("Error sending request:", err);
+            console.error(err);
             setError(err.message);
         } finally {
             setLoading(false);
@@ -124,6 +66,7 @@ export default function SwapRequestModal({
         setError("");
         setMessage("");
         setRequestType("buy");
+        setSelectedListingId("");
         onClose();
     }
 
@@ -131,7 +74,7 @@ export default function SwapRequestModal({
 
     return (
         <div className="modal-overlay" onClick={handleClose}>
-            <div className="modal-content swap-request-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-content swap-request-modal" onClick={e => e.stopPropagation()}>
                 <div className="modal-header">
                     <h2>Request this Listing</h2>
                     <button className="close-btn" onClick={handleClose}>&times;</button>
@@ -149,23 +92,11 @@ export default function SwapRequestModal({
                     <div className="form-group">
                         <label>Request Type</label>
                         <div className="request-type-selector">
-                            <button
-                                type="button"
-                                className={`type-btn ${requestType === "buy" ? "active" : ""}`}
-                                onClick={() => setRequestType("buy")}
-                            >
-                                <span className="icon">💰</span>
-                                <span>Buy</span>
-                                <p>Express interest in purchasing</p>
+                            <button type="button" className={`type-btn ${requestType === "buy" ? "active" : ""}`} onClick={() => setRequestType("buy")}>
+                                <span className="icon">💰</span><span>Buy</span><p>Express interest in purchasing</p>
                             </button>
-                            <button
-                                type="button"
-                                className={`type-btn ${requestType === "swap" ? "active" : ""}`}
-                                onClick={() => setRequestType("swap")}
-                            >
-                                <span className="icon">🔄</span>
-                                <span>Swap</span>
-                                <p>Offer one of your listings in exchange</p>
+                            <button type="button" className={`type-btn ${requestType === "swap" ? "active" : ""}`} onClick={() => setRequestType("swap")}>
+                                <span className="icon">🔄</span><span>Swap</span><p>Offer one of your listings in exchange</p>
                             </button>
                         </div>
                     </div>
@@ -179,11 +110,7 @@ export default function SwapRequestModal({
                                     <p>Create a listing first to offer a swap!</p>
                                 </div>
                             ) : (
-                                <select
-                                    value={selectedListingId}
-                                    onChange={(e) => setSelectedListingId(e.target.value)}
-                                    required
-                                >
+                                <select value={selectedListingId} onChange={e => setSelectedListingId(e.target.value)} required>
                                     {myListings.map(listing => (
                                         <option key={listing.id} value={listing.id}>
                                             {listing.listingName} - ${listing.price}
@@ -196,32 +123,16 @@ export default function SwapRequestModal({
 
                     <div className="form-group">
                         <label>Message (Optional)</label>
-                        <textarea
-                            value={message}
-                            onChange={(e) => setMessage(e.target.value)}
-                            placeholder="Add a message to the seller..."
-                            rows="4"
-                        />
+                        <textarea value={message} onChange={e => setMessage(e.target.value)} placeholder="Add a message to the seller..." rows="4" />
                     </div>
 
                     {error && <p className="error-message">{error}</p>}
 
                     <div className="modal-actions">
-                        <button
-                            type="submit"
-                            className="submit-btn"
-                            disabled={loading || (requestType === "swap" && myListings.length === 0)}
-                        >
+                        <button type="submit" className="submit-btn" disabled={loading || (requestType === "swap" && myListings.length === 0)}>
                             {loading ? "Sending..." : "Send Request"}
                         </button>
-                        <button
-                            type="button"
-                            className="cancel-btn"
-                            onClick={handleClose}
-                            disabled={loading}
-                        >
-                            Cancel
-                        </button>
+                        <button type="button" className="cancel-btn" onClick={handleClose} disabled={loading}>Cancel</button>
                     </div>
                 </form>
             </div>
