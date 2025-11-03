@@ -20,23 +20,27 @@
     margin: 0;
 }
 
-/* Search Bar */
 .search-bar {
     display: flex;
     align-items: center;
     background-color: white;
-    border: 2px solid #7ab0ae;
+    border: 2px solid #7ab0ae !important;
     border-radius: 50px;
     overflow: hidden;
     width: 400px;
     max-width: 100%;
     margin-left: auto;
     margin-right: 20px;
+    box-sizing: border-box;
+}
+
+.search-bar:hover {
+    border: 2px solid #7ab0ae !important;
 }
 
 .search-bar input {
     flex: 1;
-    border: none;
+    border: none !important;
     padding: 12px 20px;
     font-size: 1rem;
     background-color: white;
@@ -44,9 +48,14 @@
     margin: 0;
 }
 
+.search-bar input:hover {
+    border: none !important;
+}
+
 .search-bar input:focus {
-    outline: none;
-    border: none;
+    outline: none !important;
+    border: none !important;
+    background-color: white;
 }
 
 .search-bar input::placeholder {
@@ -55,18 +64,24 @@
 
 .search-btn {
     background-color: #054341;
-    border: none;
+    border: none !important;
     padding: 12px 20px;
     cursor: pointer;
     font-size: 1.2rem;
     margin: 0;
     width: auto;
     border-radius: 0;
-    transition: background-color 0.3s ease;
 }
 
 .search-btn:hover {
-    background-color: #7ab0ae;
+    background-color: #054341;
+    border: none !important;
+}
+
+.search-btn:focus {
+    outline: none !important;
+    background-color: #054341;
+    border: none !important;
 }
 
 /* Listings Grid */
@@ -144,19 +159,19 @@
 }
 
 .menu-btn {
-  padding: 10px 16px;
-  border-radius: 6px;
-  border: none;
-  background: #064c48;
-  color: #fff;
-  font: inherit;
-  font-size: 15px;
-  font-weight: 600;
+  padding: 0.75rem 2rem;
+  border: 2px solid transparent;
+  border-radius: 50px;
   cursor: pointer;
-  transition: background 0.2s ease;
+  font-size: 1rem;
+  font-weight: 600;
+  transition: all 0.3s;
+  background-color: #054341;
+  color: white;
 }
 .menu-btn:hover {
-  background: #08615d;
+  background-color: #6ca39f;
+  border: 2px solid #054341;
 }
 
 .menu-wrap {

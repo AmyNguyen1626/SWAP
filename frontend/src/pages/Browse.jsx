@@ -17,11 +17,9 @@ export default function Browse() {
     const [maxYear, setMaxYear] = useState("");
     const [sortOption, setSortOption] = useState("newest");
     const [filterCondition, setFilterCondition] = useState("all");
-    const AU_MAKES = [
-        "Toyota","Mazda","Hyundai","Kia","Honda",
-        "Subaru","Mitsubishi","Nissan","Ford","Volkswagen",
-         "BMW","Mercedes-Benz","Audi"
-    ];
+    const [availableMakes, setAvailableMakes] = useState([]);
+
+
     const toNumber = (v) => {
     if (v == null) return 0;
      const n = Number(String(v).replace(/[^\d.-]/g, ""));
@@ -48,91 +46,104 @@ export default function Browse() {
     const sortRef = useRef(null);
 
     // 1) fetch listings once
-// 1) fetch listings once
-useEffect(() => {
-  async function getAllListings() {
-    setLoading(true);
-    try {
-      const result = await fetchListings();
-      const activeListings = result.filter(
-        (l) => l.status === "active" || !l.status
-      );
-      setListings(activeListings);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
+    useEffect(() => {
+      async function getAllListings() {
+        setLoading(true);
+        try {
+          const result = await fetchListings();
+          const activeListings = result.filter(
+            (l) => l.status === "active" || !l.status
+          );
+          setListings(activeListings);
+
+          // Extract unique makes and sort alphabetically
+          const makesSet = new Set();
+          activeListings.forEach((listing) => {
+              const make = listing.category?.make;
+              if (make && make.trim()) {
+                  makesSet.add(make.trim());
+              }
+          });
+          const sortedMakes = Array.from(makesSet).sort((a, b) => 
+              a.localeCompare(b, 'en', { sensitivity: 'base' })
+          );
+          setAvailableMakes(sortedMakes);
+
+        } catch (err) {
+          setError(err.message);
+        } finally {
+          setLoading(false);
+        }
+      }
+      getAllListings();
+    }, []);
+
+    // 2) close menus on outside click
+    useEffect(() => {
+      const handleClickOutside = (event) => {
+        if (filterRef.current && !filterRef.current.contains(event.target)) {
+          setShowFilter(false);
+        }
+        if (sortRef.current && !sortRef.current.contains(event.target)) {
+          setShowSort(false);
+        }
+      };
+
+      // use 'click' for simplicity; 'mousedown' is fine too
+      document.addEventListener("click", handleClickOutside);
+      return () => document.removeEventListener("click", handleClickOutside);
+    }, []);
+
+
+    // Filter + Sort listings
+    let filteredListings = listings.filter((listing) => {
+      const q = searchQuery.toLowerCase();
+
+      const matchesSearch =
+        listing.listingName?.toLowerCase().includes(q) ||
+        listing.location?.toLowerCase().includes(q) ||
+        listing.category?.make?.toLowerCase().includes(q) ||
+        listing.category?.model?.toLowerCase().includes(q);
+
+      const matchesMake =
+        !makeFilter || listing.category?.make?.toLowerCase() === makeFilter.toLowerCase();
+
+      const year = getYear(listing);
+
+      const matchesYear =
+      (!minYear || year >= Number(minYear)) &&
+      (!maxYear || year <= Number(maxYear));
+
+      const price = Number(listing.price || 0);
+
+      const matchesPrice =
+        (!minPrice || price >= Number(minPrice)) &&
+        (!maxPrice || price <= Number(maxPrice));
+
+      return matchesSearch && matchesMake && matchesYear && matchesPrice;
+    });
+
+    // Sort choices
+    filteredListings = filteredListings.sort((a, b) => {
+      const yearA = getYear(a);
+      const yearB = getYear(b);
+      const kmA   = getKm(a);
+      const kmB   = getKm(b);
+      const priceA = Number(a.price || 0);
+      const priceB = Number(b.price || 0);
+
+
+      switch (sortOption) {
+      case "price-asc": return priceA - priceB;
+      case "price-desc": return priceB - priceA;
+      case "km-asc":     return kmA - kmB;
+      case "km-desc":    return kmB - kmA;
+      case "year-desc":  return yearB - yearA; // Newest → Oldest
+      case "year-asc":   return yearA - yearB; // Oldest → Newest
+      default: { return 0; /* fallback to createdAt if you like */ }
     }
-  }
-  getAllListings();
-}, []);
 
-// 2) close menus on outside click
-useEffect(() => {
-  const handleClickOutside = (event) => {
-    if (filterRef.current && !filterRef.current.contains(event.target)) {
-      setShowFilter(false);
-    }
-    if (sortRef.current && !sortRef.current.contains(event.target)) {
-      setShowSort(false);
-    }
-  };
-
-  // use 'click' for simplicity; 'mousedown' is fine too
-  document.addEventListener("click", handleClickOutside);
-  return () => document.removeEventListener("click", handleClickOutside);
-}, []);
-
-
-// Filter + Sort listings
-let filteredListings = listings.filter((listing) => {
-  const q = searchQuery.toLowerCase();
-
-  const matchesSearch =
-    listing.listingName?.toLowerCase().includes(q) ||
-    listing.location?.toLowerCase().includes(q) ||
-    listing.category?.make?.toLowerCase().includes(q) ||
-    listing.category?.model?.toLowerCase().includes(q);
-
-  const matchesMake =
-    !makeFilter || listing.category?.make?.toLowerCase() === makeFilter.toLowerCase();
-
-  const year = getYear(listing);
-
-  const matchesYear =
-  (!minYear || year >= Number(minYear)) &&
-  (!maxYear || year <= Number(maxYear));
-
-  const price = Number(listing.price || 0);
-
-  const matchesPrice =
-    (!minPrice || price >= Number(minPrice)) &&
-    (!maxPrice || price <= Number(maxPrice));
-
-  return matchesSearch && matchesMake && matchesYear && matchesPrice;
-});
-
-// Sort choices
-filteredListings = filteredListings.sort((a, b) => {
-  const yearA = getYear(a);
-  const yearB = getYear(b);
-  const kmA   = getKm(a);
-  const kmB   = getKm(b);
-  const priceA = Number(a.price || 0);
-  const priceB = Number(b.price || 0);
-
-
-  switch (sortOption) {
-  case "price-asc": return priceA - priceB;
-  case "price-desc": return priceB - priceA;
-  case "km-asc":     return kmA - kmB;
-  case "km-desc":    return kmB - kmA;
-  case "year-desc":  return yearB - yearA; // Newest → Oldest
-  case "year-asc":   return yearA - yearB; // Oldest → Newest
-  default: { /* fallback to createdAt if you like */ }
-}
-
-});
+    });
 
 
 
@@ -180,7 +191,7 @@ filteredListings = filteredListings.sort((a, b) => {
             onChange={(e) => setMakeFilter(e.target.value)}
           >
             <option value="">All Makes</option>
-            {AU_MAKES.map((m) => (
+            {availableMakes.map((m) => (
               <option key={m} value={m}>
                 {m}
               </option>
