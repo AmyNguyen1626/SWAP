@@ -43,3 +43,36 @@ export async function toggleWishlist(currentUser, listingId, isCurrentlyInWishli
         throw err;
     }
 }
+
+// Fetch wishlist
+export async function getWishlist(currentUser) {
+    if (!currentUser) throw new Error("No user logged in");
+
+    try {
+        const token = await getIdToken(currentUser);
+        const res = await axios.get(WISHLIST_API_BASE, {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+        return res.data; 
+    } catch (err) {
+        console.error("Error fetching wishlist:", err);
+        throw new Error(err.response?.data?.error || "Failed to fetch wishlist");
+    }
+}
+
+
+// Remove item from wishlist
+export async function removeFromWishlist(currentUser, wishlistId) {
+    if (!currentUser) throw new Error("No user logged in");
+    
+    try {
+        const token = await getIdToken(currentUser);
+        await axios.delete(`${WISHLIST_API_BASE}/${wishlistId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+    } catch (err) {
+        console.error("Error removing from wishlist:", err);
+        throw new Error(err.response?.data?.error || "Failed to remove from wishlist");
+    }
+
+}

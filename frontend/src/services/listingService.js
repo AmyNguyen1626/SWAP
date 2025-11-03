@@ -45,24 +45,28 @@ export async function editListing(listingId, listingData, token) {
 }
 
 // Fetch user listings
-export async function fetchUserListings(currentUser, excludeListingId) {
+export async function fetchUserListings(currentUser, { excludeListingId, onlyActive = true } = {}) {
   if (!currentUser) throw new Error("No user logged in");
 
   try {
     const token = await getIdToken(currentUser);
-    const response = await axios.get(`${LISTING_API_BASE}/user/my-listings`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+
+    const res = await axios.get(`${LISTING_API_BASE}/user/my-listings`, {
+      headers: { Authorization: `Bearer ${token}` },
     });
 
-    // Filter out a specific listing
-    return response.data.filter(
-      (listing) => listing.id !== excludeListingId && listing.status === "active"
-    );
+    // If server sends array directly
+    const listingsArray = Array.isArray(res.data) ? res.data : res.data.listings || [];
+
+    // Optionally filter listings
+    return listingsArray.filter((listing) => {
+      const notExcluded = !excludeListingId || listing.id !== excludeListingId;
+      const isActive = !onlyActive || listing.status === "active";
+      return notExcluded && isActive;
+    });
   } catch (err) {
     console.error("Error fetching user listings:", err.response?.data || err.message);
-    throw err;
+    throw new Error("Failed to fetch user listings");
   }
 }
 
@@ -75,4 +79,18 @@ export async function fetchListingById(listingId) {
     console.error("Error fetching listing by ID:", err.response?.data || err.message);
     throw err;
   }
-} 
+}
+
+// Delete listing 
+export async function deleteListing(currentUser, listingId) {
+  if (!currentUser) throw new Error("No user logged in");
+  try {
+    const token = await getIdToken(currentUser);
+    await axios.delete(`${LISTING_API_BASE}/${listingId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  } catch (err) {
+    console.error("Error deleting listing:", err);
+    throw new Error(err.response?.data?.error || "Failed to delete listing");
+  }
+}
