@@ -22,7 +22,23 @@ var app = express();
 // app.set('views', path.join(__dirname, 'views'));
 // app.set('view engine', 'hbs');
 
-app.use(cors({ origin: 'http://localhost:5173' })); // enable CORS for the frontend
+//app.use(cors({ origin: 'http://localhost:5173' })); // enable CORS for the frontend
+
+const allowedOrigins = [
+  'http://localhost:5173',
+  'https://swap-frontend-tigr.onrender.com'
+]
+
+app.use(cors({
+  origin:function(origin, callback){
+    if(!origin) return callback(null, true);
+    if(allowedOrigins.indexOf(origin)===-1){
+      const msg = 'The CORS policy for this site will not allow access';
+      return callback(new Error(msg), false);
+    }
+    return callback(null, true);
+  }
+}))
 
 app.use(logger('dev'));
 app.use(express.json());
