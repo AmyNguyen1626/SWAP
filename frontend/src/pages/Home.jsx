@@ -14,16 +14,19 @@ export default function Home() {
 
     const navigate = useNavigate();
 
+    // Fetch listings on component mount
     useEffect(() => {
         async function getAllListings() {
             setLoading(true);
             try{
                 const result = await fetchListings();
 
+                // Filter to show only active listings
                 const activeListings = result.filter(listing => 
                 listing.status === "active" || !listing.status
             ); 
-            // shows only the first 6 active listings
+
+            // Shows only the first 6 active listingsin the carousel
             setListings(activeListings.slice(0,6));
             } catch (err){
                 setError(err.message);
@@ -37,9 +40,8 @@ export default function Home() {
 );
 
     return (
-
-        // changed from 150 to 0
         <div style={{marginTop: "0px"}}>
+            {/* Swiper carousel for featured listings */}
             <Swiper
                 modules={[EffectCoverflow, Autoplay]}
                 grabCursor={true}
@@ -81,6 +83,7 @@ export default function Home() {
                 ))}
             </Swiper>
 
+            {/* Intro section */}
             <div>
                 <h2 style={{ letterSpacing: "2px", marginTop: "40px" }}>From Swapping to Shopping - Find Your Next Ride</h2>
                 <button onClick={() => navigate("/browse")}>

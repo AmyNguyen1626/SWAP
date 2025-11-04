@@ -14,22 +14,24 @@ export default function ConversationsList({ onSelectConversation }) {
             const token = await currentUser.getIdToken(true);
 
             // Use the most recent lastUpdated timestamp to fetch only new conversations
-            const lastUpdated = conversations.length
+            const lastUpdated = conversations.length && conversations[0].lastUpdated && conversations[0].lastUpdated._seconds
                 ? conversations[0].lastUpdated._seconds * 1000
                 : undefined;
 
-            const params = lastUpdated ? { after: lastUpdated } : {};
-            const data = await getConversations(token, params);
+            const paramsObj = lastUpdated ? { after: lastUpdated } : {};
+            const data = await getConversations(token, paramsObj);
 
-            if (!data || data.length === 0) return;
+            if (!Array.isArray(data) || data.length === 0) return;
 
             // Merge new conversations without duplicates
             setConversations(prev => {
                 const existingIds = new Set(prev.map(c => c.id));
                 const newConvos = data.filter(c => !existingIds.has(c.id));
-                return [...newConvos, ...prev].sort(
-                    (a, b) => (b.lastUpdated._seconds || 0) - (a.lastUpdated._seconds || 0)
-                );
+                return [...newConvos, ...prev].sort((a, b) => {
+                    const aTime = a.lastUpdated?._seconds ? a.lastUpdated._seconds : 0;
+                    const bTime = b.lastUpdated?._seconds ? b.lastUpdated._seconds : 0;
+                    return bTime - aTime;
+                });
             });
         } catch (err) {
             console.error("Error fetching conversations:", err);

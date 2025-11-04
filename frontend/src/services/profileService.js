@@ -2,6 +2,7 @@ import axios from "axios";
 
 const PROFILE_API_BASE = import.meta.env.PROFILE_API_BASE;
 
+// Fetch user profile
 export const fetchUserProfile = async (token) => {
     try {
         const res = await axios.get(PROFILE_API_BASE, {

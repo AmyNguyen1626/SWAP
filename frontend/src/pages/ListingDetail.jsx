@@ -18,6 +18,7 @@ export default function ListingDetail() {
     const [isInWishlist, setIsInWishlist] = useState(false);
     const [wishlistLoading, setWishlistLoading] = useState(false);
 
+    // Load listing details on component mount or when ID changes
     useEffect(() => {
         async function loadListing() {
             setLoading(true);
@@ -25,6 +26,7 @@ export default function ListingDetail() {
                 const data = await fetchListingById(id);
                 setListing(data);
 
+                // Check if listing is in user's wishlist
                 if (currentUser) {
                     const inWishlist = await checkWishlist(currentUser, id);
                     setIsInWishlist(inWishlist);
@@ -39,6 +41,7 @@ export default function ListingDetail() {
         loadListing();
     }, [id, currentUser]);
 
+    // Handle adding/removing listing from wishlist
     async function handleToggleWishlist() {
         if (!currentUser) {
             alert("Please log in to save listings");
@@ -59,6 +62,7 @@ export default function ListingDetail() {
         }
     }
 
+    // Handle click on "Request Swap or Buy" button
     function handleRequestClick() {
         if (!currentUser) {
             alert("Please log in to request listings");
@@ -66,18 +70,20 @@ export default function ListingDetail() {
             return;
         }
 
+        // Prevent requesting own listing
         if (listing.userId === currentUser.uid) {
             alert("You cannot request your own listing");
             return;
         }
-
-        setShowSwapModal(true);
+        setShowSwapModal(true); // Open the swap request modal
     }
 
+    // Callback for when a swap/buy request is successful
     function handleRequestSuccess() {
         alert("Request sent successfully! Check your profile to track it.");
     }
 
+    // Show loading state while fetching data
     if (loading) {
         return (
             <div className="listing-detail-container loading">
@@ -86,6 +92,7 @@ export default function ListingDetail() {
         );
     }
 
+    // Show error state if listing is not found
     if (error || !listing) {
         return (
             <div className="listing-detail-container error">
@@ -95,7 +102,8 @@ export default function ListingDetail() {
             </div>
         );
     }
-
+    
+    // Destructure category info for display
     const { category } = listing;
     const mainTitle = `${category.year} ${category.make} ${category.model}`;
     const specs = [

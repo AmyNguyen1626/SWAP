@@ -2,11 +2,7 @@ import axios from "axios";
 
 const NOTIFICATION_API_URL = import.meta.env.VITE_NOTIFICATION_API_URL;
 
-/**
- * Fetch unread notification counts for the current user
- * @param {string} token - Firebase auth token
- * @returns {Promise<Object>} - Object with message and request counts broken down by type
- */
+// Fetch unread notification counts for the current user
 export async function getNotificationCounts(token) {
     try {
         const response = await axios.get(`${NOTIFICATION_API_URL}/counts`, {
@@ -19,11 +15,7 @@ export async function getNotificationCounts(token) {
     }
 }
 
-/**
- * Mark messages in a conversation as read
- * @param {string} convoId - Conversation ID
- * @param {string} token - Firebase auth token
- */
+// Mark messages in a conversation as read
 export async function markMessagesAsRead(convoId, token) {
     try {
         const response = await axios.post(
@@ -38,11 +30,7 @@ export async function markMessagesAsRead(convoId, token) {
     }
 }
 
-/**
- * Mark a swap request notification as viewed
- * @param {string} requestId - Swap request ID
- * @param {string} token - Firebase auth token
- */
+// Mark a swap request notification as viewed
 export async function markRequestAsViewed(requestId, token) {
     try {
         const response = await axios.post(
@@ -57,10 +45,7 @@ export async function markRequestAsViewed(requestId, token) {
     }
 }
 
-/**
- * Mark all received requests as viewed
- * @param {string} token - Firebase auth token
- */
+// Mark all received requests as viewed
 export async function markReceivedRequestsAsViewed(token) {
     try {
         const response = await axios.post(
@@ -75,10 +60,7 @@ export async function markReceivedRequestsAsViewed(token) {
     }
 }
 
-/**
- * Mark all sent requests as viewed
- * @param {string} token - Firebase auth token
- */
+// Mark all sent requests as viewed
 export async function markSentRequestsAsViewed(token) {
     try {
         const response = await axios.post(
