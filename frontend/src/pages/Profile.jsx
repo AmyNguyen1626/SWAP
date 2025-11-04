@@ -165,7 +165,7 @@ export default function Profile() {
         try {
             setListingsLoading(true);
             const data = await fetchUserListings(currentUser);
-            setMyListings(data);
+            setMyListings(Array.isArray(data) ? data : []);
         } catch (err) {
             console.error("Error fetching listings:", err);
             setError(err.message);
@@ -178,7 +178,7 @@ export default function Profile() {
         try {
             setRequestsLoading(true);
             const data = await getReceivedRequests(currentUser);
-            setReceivedRequests(data);
+            setReceivedRequests(Array.isArray(data) ? data : []);
         } catch (err) {
             console.error("Error fetching received requests:", err);
             setError(err.message);
@@ -192,7 +192,7 @@ export default function Profile() {
             setRequestsLoading(true);
 
             const data = await getSentRequests(currentUser);
-            setSentRequests(data);
+            setSentRequests(Array.isArray(data) ? data : []);
         } catch (err) {
             console.error("Error fetching sent requests:", err);
             setError(err.message);
@@ -206,7 +206,7 @@ export default function Profile() {
             setWishlistLoading(true);
 
             const data = await getWishlist(currentUser);
-            setWishlist(data);
+            setWishlist(Array.isArray(data) ? data : []);
         } catch (err) {
             console.error("Error fetching wishlist:", err);
             setError(err.message);
