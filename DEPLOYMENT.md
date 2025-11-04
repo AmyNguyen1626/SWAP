@@ -1,56 +1,73 @@
 # swap : Deployment
 
-## Deployed Application
+## Deployed Application Link
 https://swap-frontend-tigr.onrender.com/
 
 ## Build and Run Instructions
 ### 1. Prerequisites
-- Ensure that you have the following installed locally to build and run the project: <br>
-Node.js: https://nodejs.org/<br>
-npm: https://www.npmjs.com/
+Ensure that the following prerequisites installed locally to build and run the project: 
+- `Node.js`: https://nodejs.org/
+
+- `npm`: https://www.npmjs.com/
+
 ### 2. Clone the Repository
-git clone https://github.com/MQCOMP3120-2025/group-project-swap.git <br>
+Clone the repository by running the following commands line by line:
+```
+git clone https://github.com/MQCOMP3120-2025/group-project-swap.git 
 cd group-project-swap
+```
 ### 3. Install Dependencies
-npm install firebase <br>
-npm install swival
+Install all dependencies from `package.json` with the following command:
+```
+npm install
+```
 ### 4. Environment Setup
-You would need to create a .env file in the project root folder and add the required environment variables. 
-- FIREBASE_API_KEY=
-- FIREBASE_PROJECT_ID=
-- PORT=3000
+Create a `.env` file in the project root folder and add the required environment variables: 
+```
+FIREBASE_API_KEY=
+FIREBASE_PROJECT_ID=
+PORT=3000
+```
 ### 5. Running the Application Locally 
-- Development Mode: npm run dev, to run the app with hot-reload.
-- Production Build: npm run build - npm start, to build the app and start the production server.
+- Development Mode: `npm run dev`, to run the app with hot-reload.
+  
+- Production Build: `npm run build - npm start`, to build the app and start the production server.
 
 ## Deployment Process with Render
-1. Connect your GitHub repository to render. 
+1. Connect the GitHub repository to Render.
+   
 2. Create a new web service and link it to the repo.
-3. Set the build commands to 'npm install' and 'npm run build'
-4. Set the start command to: 'npm start'
-5. For both the frontend and backend, set the environment variables to match their .env files. 
-### Automatic Deployments 
-With render, it automatically triggers new deployment whenever you push changes to the connected branch (in this case it's the main branch). Build logs and deployment status can be monitored from the render dashboard and incase of build or runtime errors, you would check the log for details.
+   
+3. Set the build commands to `npm install` and `npm run build`
+   
+4. Set the start command to: `npm start`
+   
+5. For both the frontend and backend, set the environment variables to match their `.env` files. 
 
 ## Continuous Integration / Continuous Deployment (CI/CD)
-### Render's Built-in CI/CD
-- Render provides built-in CI/CD because it automatically building and deploying your branch on each push to the connected Got branch.
-This process includes: Installing dependencies, running build scripts and deploying the latest successful build
+### 1. GitHub Actions (CI)
+- Automated test workflow is set up in `.github/workflows/ci.yml`.
 
-Grading Rubric
-Description of deployment process
-Clear instructions on how to build, run
-Details of CI/CD are present and clear
+- Runs on every push or pull request to the `main` branch.
 
-Outline
-o   A link to a deployed version of your application if available
-o   Information on how to build and run the project, eg. if someone were to take over development
-o   Information about any use of Continuous Integration you have implemented.
+- Executes unit and integration tests for both frontend and backend.
 
+- If any test fails, the workflow stops and the code is not deployed. Developers are notified via GitHub.
 
+### 2. Render Built-in CI/CD (CD)
+- Render automatically deploys the app whenever the connected branch (main) is updated.
 
-Dependencies: 
+- Deployment steps include:
+  
+  1. Installing dependencies (`npm install`).
+  2. Running the build script (`npm run build`).
+  3. Serving the latest build on the live URL.
 
-npm install 
-npm firebase 
-npm swival
+- Deployment logs are available in the Render dashboard.
+
+- This ensures the live app is always up-to-date with the latest tested and stable code.
+
+### Summary
+- **GitHub Actions** provides continuous integration by testing code before deployment.  
+
+- **Render** handles continuous deployment by hosting the latest successful build automatically.
