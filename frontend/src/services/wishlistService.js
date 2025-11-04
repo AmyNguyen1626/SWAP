@@ -1,7 +1,7 @@
 import axios from "axios";
 import { getIdToken } from "firebase/auth";
 
-const WISHLIST_API_BASE = "http://localhost:3000/api/wishlist/";
+const WISHLIST_API_BASE = import.meta.env.WISHLIST_API_BASE;
 
 // Check if listing is in user's wishlist
 export async function checkWishlist(currentUser, listingId) {

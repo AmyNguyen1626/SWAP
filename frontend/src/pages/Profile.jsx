@@ -135,7 +135,7 @@ export default function Profile() {
                 const token = await getIdToken(currentUser);
                 const user = await fetchUserProfile(token);
                 setProfile(user);
-                setContactInfo({ email: user.email || "", phone: "" });
+                setContactInfo({ email: user?.email || "", phone: "" });
             } catch (err) {
                 setError(err.message);
             } finally {
@@ -242,7 +242,7 @@ export default function Profile() {
     }
 
     async function confirmAcceptRequest() {
-        if (!selectedRequest || !contactInfo.email) return;
+        if (!selectedRequest || !contactInfo?.email) return;
 
         try {
             await handleAcceptRequestAction(selectedRequest.id);
@@ -472,7 +472,7 @@ export default function Profile() {
                                             {request.status === "accepted" && request.contactInfo && (
                                                 <div className="contact-info-display success">
                                                     <h4>Contact Info Received:</h4>
-                                                    <p>Email: {request.contactInfo.email}</p>
+                                                    <p>Email: {request.contactInfo?.email || "N/A"}</p>
                                                     {request.contactInfo.phone && <p>Phone: {request.contactInfo.phone}</p>}
                                                 </div>
                                             )}
@@ -534,7 +534,7 @@ export default function Profile() {
                             <label>Email *</label>
                             <input
                                 type="email"
-                                value={contactInfo.email}
+                                value={contactInfo?.email || ""}
                                 onChange={(e) => setContactInfo({ ...contactInfo, email: e.target.value })}
                                 placeholder="your@email.com"
                             />

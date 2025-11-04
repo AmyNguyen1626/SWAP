@@ -1,7 +1,7 @@
 import axios from "axios";
 import { getIdToken } from "firebase/auth";
 
-const SWAP_REQUEST_API_BASE = "http://localhost:3000/api/swap-requests/";
+const SWAP_REQUEST_API_BASE = import.meta.env.SWAP_REQUEST_API_BASE;
 
 // Create swap request
 export async function createSwapRequest(requestData, token) {

@@ -1,7 +1,7 @@
 import axios from "axios";
 import { getIdToken } from "firebase/auth";
 
-const LISTING_API_BASE = "http://localhost:3000/api/listings";
+const LISTING_API_BASE = import.meta.env.VITE_LISTING_API_BASE;
 
 // Create new listing
 export async function createListing(listingData, token) {

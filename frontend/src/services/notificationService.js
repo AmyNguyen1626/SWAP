@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const NOTIFICATION_API_URL = "http://localhost:3000/api/notifications";
+const NOTIFICATION_API_URL = import.meta.env.VITE_NOTIFICATION_API_URL;
 
 /**
  * Fetch unread notification counts for the current user

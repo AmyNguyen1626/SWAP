@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const MESSAGE_API_URL = "http://localhost:3000/api/conversations";
+const MESSAGE_API_URL = import.meta.env.VITE_MESSAGE_API_URL;
 
 // Get all conversations for the current user
 export async function getConversations(token, params = {}) {

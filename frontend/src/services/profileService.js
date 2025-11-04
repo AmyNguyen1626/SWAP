@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const PROFILE_API_BASE = "http://localhost:3000/users/profile";
+const PROFILE_API_BASE = import.meta.env.PROFILE_API_BASE;
 
 export const fetchUserProfile = async (token) => {
     try {
