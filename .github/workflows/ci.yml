@@ -19,6 +19,7 @@ jobs:
 
       - name: Set up backend .env
         run: |
+          echo 'SERVICE_ACCOUNT=${{ secrets.SERVICE_ACCOUNT }}' >> backend/.env
           echo "CLOUDINARY_NAME=${{ secrets.CLOUDINARY_NAME }}" >> backend/.env
           echo "CLOUDINARY_API_KEY=${{ secrets.CLOUDINARY_API_KEY }}" >> backend/.env
           echo "CLOUDINARY_API_SECRET=${{ secrets.CLOUDINARY_API_SECRET }}" >> backend/.env
@@ -26,7 +27,6 @@ jobs:
           echo "SMTP_PASS=${{ secrets.SMTP_PASS }}" >> backend/.env
           echo "SMTP_HOST=${{ secrets.SMTP_HOST }}" >> backend/.env
           echo "SMTP_PORT=${{ secrets.SMTP_PORT }}" >> backend/.env
-          echo "SERVICE_ACCOUNT=${{ secrets.SERVICE_ACCOUNT }}" >> backend/.env
 
       - name: Install dependencies
         run: |
