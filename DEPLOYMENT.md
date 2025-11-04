@@ -5,14 +5,14 @@ https://swap-frontend-tigr.onrender.com/
 
 ## Build and Run Instructions
 ### 1. Prerequisites
-- Ensure that you have the following installed locally to build and run the project: 
-Node.js: https://nodejs.org/
+- Ensure that you have the following installed locally to build and run the project: <br>
+Node.js: https://nodejs.org/<br>
 npm: https://www.npmjs.com/
 ### 2. Clone the Repository
-git clone https://github.com/MQCOMP3120-2025/group-project-swap.git
+git clone https://github.com/MQCOMP3120-2025/group-project-swap.git <br>
 cd group-project-swap
 ### 3. Install Dependencies
-npm install firebase
+npm install firebase <br>
 npm install swival
 ### 4. Environment Setup
 You would need to create a .env file in the project root folder and add the required environment variables. 
