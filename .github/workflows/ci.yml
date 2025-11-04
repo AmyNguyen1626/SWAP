@@ -24,9 +24,9 @@ jobs:
           echo "CLOUDINARY_API_SECRET=${{ secrets.CLOUDINARY_API_SECRET }}" >> backend/.env
           echo "SMTP_USER=${{ secrets.SMTP_USER }}" >> backend/.env
           echo "SMTP_PASS=${{ secrets.SMTP_PASS }}" >> backend/.env
-          echo "SMTP_HOST=${{ secrets.SMTP_PASS }}" >> backend/.env
-          echo "SMTP_PORT=${{ secrets.SMTP_PASS }}" >> backend/.env
-          echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' > backend/serviceAccountKey.json
+          echo "SMTP_HOST=${{ secrets.SMTP_HOST }}" >> backend/.env
+          echo "SMTP_PORT=${{ secrets.SMTP_PORT }}" >> backend/.env
+          echo "SERVICE_ACCOUNT=${{ secrets.SERVICE_ACCOUNT }}" >> backend/.env
 
       - name: Install dependencies
         run: |
