@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const REPORT_API_URL = import.meta.env.REPORT_API_URL;
+const REPORT_API_URL = import.meta.env.VITE_REPORT_API_URL;
 
 // Submit a report
 export async function reportUser(token, reportData, evidenceFiles = []) {
