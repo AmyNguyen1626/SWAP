@@ -34,7 +34,12 @@ router.post("/", verifyToken, upload.array("evidence", 10), async (req, res) => 
         try {
             const reportedUser = await admin.auth().getUser(targetUid); // may throw 'user-not-found'
             await admin.auth().updateUser(targetUid, { disabled: true });
-            await sendSuspensionEmail(reportedUser.email, reason);
+            // Respond immediately to frontend
+            res.status(200).json({ message: "Report submitted and account locked", evidence: evidenceUrls });
+
+            // Send email asynchronously (don't await)
+            sendSuspensionEmail(reportedUser.email, reason)
+                .catch(err => console.error("Failed to send suspension email:", err));
         } catch (err) {
             if (err.code === "auth/user-not-found") {
                 console.error("Cannot disable user: UID not found", targetUid);
@@ -44,8 +49,6 @@ router.post("/", verifyToken, upload.array("evidence", 10), async (req, res) => 
                 return res.status(500).json({ error: "Failed to disable user" });
             }
         }
-
-        res.status(200).json({ message: "Report submitted and account locked", evidence: evidenceUrls });
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: "Failed to submit report" });
