@@ -125,7 +125,16 @@ This folder contains screenshots demonstrating the key features and user interfa
 
 ### Report Modal
 ![Report User](report-modal.png)
-**Description:** Modal for reporting suspicious users or fraudulent listings. Includes reason dropdown and description text area. Reports are sent to admin review.
+![Report User](report-email-sent.png)
+![Report User](report-suspicious-account-chat.png)
+![Report User](report-suspicious-account-listing.png)
+![Report User](report-suspicious-account-cant-login.png)
+**Description:** Modal for reporting suspicious users or fraudulent listings. Includes reason dropdown and description text area. Reports are sent to admin review. Users can select a reason from a dropdown and provide additional details in a text area. Upon submission:
+- The reported user account is temporarily deactivated. The user cannot log in.
+- The reported user receives an email informing them of the deactivation and pending investigation.
+- All conversations involving the reported user are deactivated. Other users cannot send or receive messages from that account.
+- All listings of the reported user are flagged in the marketplace to prevent further transactions.
+- Admin investigates the report. Once the investigation is complete and the account is cleared, the admin can reactivate the user. Upon reactivation, the account, listings, and chat access are restored to normal functionality.
 
 ### About Us Page
 ![About Us](about-us.png)
