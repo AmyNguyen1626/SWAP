@@ -51,7 +51,7 @@ Swap is an online marketplace that revolutionises the way people buy and sell ve
 - **Database**: Firestore
 - **Image Storage**: Cloudinary
 - **Email service**: SMTP
-- **Hosting**: Docker
+- **Hosting**: Docker / Render
 - **Additional Libraries**: nodemailer
 
 ### Data Sources
@@ -156,7 +156,119 @@ This section outlines the key milestones and features successfully implemented i
 - Created comprehensive documentation and issue tracking system
 
 ## Source Code Explanation
-o    A guide to the project source code - where should we look for what you have done 
+'''
+swap/
+|__ frontend/
+|     |__ public/
+|     |    |__ assets/                       # Logo and static assets
+|     |
+|     |__ src/
+|          |__ components/                   # Reuseable React components
+|               |
+|               |__ ConverstationList.jsx    # Fetch Converstation Lists
+|               |__ CreateListingForm.jsx    # Form to create new listing UI
+|               |__ EditListingForm.jsx      # Edit existing listing UI
+|               |__ Filter.jsx               # Browse Page filtering system
+|               |__ ListingCard.jsx          # Individual listing card component UI
+|               |__ Login.jsx                # Login connectivity UI
+|               |__ Message.jsx              # Fetch and send messages
+|               |__ Navbar.jsx               # Navigation bar component
+|               |__ NotificationBadge.jsx    # Notification symbol 
+|               |__ ProtectedRoute.jsx       # Secure routing component
+|               |__ Register.jsx             # Register account container UI
+|               |__ ReportModal.jsx          # Report system UI
+|               |__ SwapRequestModal.jsx     # Fetch and display swap requests
+|          |
+|          |__ contexts /                    # React Context for state management
+|               |
+|               |__ AuthContext.jsx          # Authentication if user is banned
+|               |__ NotificationContext.jsx  # Fetch and display new notifications
+|               |__ useAuth.js               # Calls AuthContext
+|          |
+|          |__ pages /                       # Main page components
+|               |
+|               |__ AboutUs.jsx              # About us page
+|               |__ Browse.jsx               # Marketplace listing view      
+|               |__ ChatPage.jsx             # Messaging system page
+|               |__ CreateListingPage.jsx    # Create / edit listing forms
+|               |__ Home.jsx                 # Landing Page
+|               |__ ListingDetail.jsx        # Individual listing view 
+|               |__ Profile.jsx              # User profile page with listings manaage tabs
+|          |
+|          |__ services /                    # Firebase service functions
+|               |
+|               |__ listingService.js        # Fetch listings
+|               |__ messageService.js        # Fetch messages
+|               |__ notificationService.js   # Fetch Notifcations
+|               |__ profileService.js        # Fetch user profile
+|               |__ reportService.js         # Submit a report
+|               |__ swapRequestService.js    # Create and fetch swap requests
+|               |__ wishlistService.js       # Fetch and remove items from wishlist
+|          |
+|          |__ App.jsx                       # Connect all routes and components
+|          |__ firebase.js                   # Configure firebase connection
+|          |__ index.css                     # Global styling for website
+|          |__ main.jsx                      # Main render context
+|     |
+|     |__package.json                        # Dependencies and scripts
+|
+|__ backend/
+|     |__ __mocks__/
+|          |
+|          |__ firebase.js                   # Firebase mocks for testing
+|     |
+|     |__ bin/
+|          |
+|          |__ www                           # Server startup script
+|     |
+|     |__ middleware/
+|          |
+|          |__ authMiddleware.js             # Authentication verification middleware
+|     |
+|     |__ routes/                            # API endpoints
+|          |
+|          |__ conversations.js              # Chat / messaging endpoints
+|          |__ index.js                      # Root routes
+|          |__ listings.js                   # Listing CRUD operations
+|          |__ notifications.js              # Notification management
+|          |__ reports.js                    # User reporting system
+|          |__ swapRequests.js               # Offer / swap request handling
+|          |__ users.js                      # User profile management
+|          |__ wishlist.js                   # Wishlist operations
+|     |
+|     |__ tests/                             # Comprehensive test suite
+|          |
+|          |__ middleware/
+|               |
+|               |__ authMiddleware.test.js       
+|          |
+|          |__ routes/
+|               |
+|               |__ conversations.test.js   
+|               |__ index.test.js   
+|               |__ listings.test.js   
+|               |__ reports.test.js   
+|               |__ swapRequests.test.js   
+|               |__ users.test.js   
+|               |__ wishlist.test.js   
+|          |
+|          |__ utils/
+|               |
+|               |__ cloudinaryUploader.test.js   
+|               |__ email.test.js   
+|     |
+|     |__ utils/                             # Helper functions
+|          |
+|          |__ cloudinaryUploader.js         # Image upload to Cloudinary
+|          |__ email.js                      # Email service for reports
+|
+|     |
+|     |__ app.js                             # Expression application setup
+|     |__ firebase.js                        # Firebase Admin SDK configuration
+|     |__ jest.config.js                     # Jest testing configuration
+|     |__ package.json                       # Backend depencies
+|
+|__ SCREENSHOTS/                             # Application screenshots
 
 ## Future Outlook
 
@@ -238,12 +350,12 @@ Our team successfully collaborated to deliver a comprehensive vehicle marketplac
 ### Individual Contributions
 
 **Amy Nguyen - RoleFull-Stack & DevOps**
-- [To be filled in]Set up the project structure with Express backend and React frontend.
-- [Specific features implemented]Integrated Firebase Authentication and configured backend user management.
-- [Components created]Created Authentication pages.
-- [Contributions to project]Created Home page.
+- Set up the project structure with Express backend and React frontend.
+- Integrated Firebase Authentication and configured backend user management.
+- Created Authentication pages.
+- Created Home page.
 - Created About Us page (based on Figma design).
-- Created Create listing page with rough design.
+- Created Create listing page with rough design, and datastore implementation.
 - Implemented Chat page with conversations list and messages sent and received in realtime.
 - Created Report modal in chat box to report suspicious accounts.
 - Created Frontend service components for API communication.
