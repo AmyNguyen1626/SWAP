@@ -22,7 +22,10 @@ export default function SwapRequestModal({ targetListing, isOpen, onClose, onSuc
     // Fetch user's listings to offer for swap
     async function fetchMyListings() {
         try {
-            const listings = await fetchUserListings(currentUser, targetListing.id);
+            const listings = await fetchUserListings(currentUser, {
+            excludeListingId: targetListing.id,
+            onlyActive: true,  // only show active listings
+        });
             setMyListings(listings);
             if (listings.length > 0) setSelectedListingId(listings[0].id);
         } catch (err) {

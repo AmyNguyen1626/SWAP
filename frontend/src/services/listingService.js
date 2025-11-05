@@ -45,7 +45,7 @@ export async function editListing(listingId, listingData, token) {
 }
 
 // Fetch user listings
-export async function fetchUserListings(currentUser, { excludeListingId, onlyActive = true } = {}) {
+export async function fetchUserListings(currentUser, { excludeListingId, onlyActive = false } = {}) {
   if (!currentUser) throw new Error("No user logged in");
 
   try {
