@@ -125,14 +125,13 @@ This section outlines the key milestones and features successfully implemented i
 
 ### [User Safety & Moderation]
 - User reporting system
-- Email integration with swap.support@gmail.com
+- Email integration with swap.reporter@gmail.com
 - Fraudulent listing removal capability
 
 ### [Design & Wireframes]
 - Figma mockups and design system
 - UI/UX planning
-- Visual identity and branding
- [ put screenshot of designs here ]
+- Visual identity and branding. See the [SCREENSHOTS README.md](SCREENSHOTS/README.md) file for more details
 
 ---
 ### Milestone Summary
