@@ -28,11 +28,16 @@ This folder contains screenshots demonstrating the key features and user interfa
 
 ### Filter System
 ![Filter Sidebar](filter-system.png)
-**Description:** Dynamic filtering system allowing users to narrow listings by make, model, year range, price range, condition, fuel type, and transmission. Filter options are generated dynamically from the database.
+![Filter Sidebar](filter-system2.png)
+**Description:** Dynamic filtering system allowing users filter listings by make, in addition to setting a range for year and price. Filter options are generated dynamically from the database to match available listings. Users are also able to sort listings by price, year, and odometer level.
 
 ### Filtered Results
 ![Filtered Results](filtered-results.png)
 **Description:** Browse page showing filtered results after user applies multiple criteria. Demonstrates how the filter system narrows down listings to match user preferences.
+
+### Search System
+![Search Results](search-results.png)
+**Description:** Browse page showing search results for query. 
 
 ---
 
@@ -44,7 +49,7 @@ This folder contains screenshots demonstrating the key features and user interfa
 
 ### Image Upload
 ![Image Upload](image-upload.png)
-**Description:** Multi-image upload interface integrated with Cloudinary. Users can upload multiple photos, preview them, and drag-and-drop to reorder images.
+**Description:** Multi-image upload interface integrated with Cloudinary. Users can upload multiple photos, preview them, and reorder.
 
 ### Listing Detail Page
 ![Listing Detail](listing-detail.png)
@@ -53,7 +58,7 @@ This folder contains screenshots demonstrating the key features and user interfa
 ### Edit Listing
 ![Edit Listing](edit-listing1.png)
 ![Edit Listing](edit-listing2.png)
-**Description:** Edit form pre-populated with existing listing data. Users can modify any field, update images, or delete the listing entirely.
+**Description:** Edit form pre-populated with existing listing data. Users can modify any field and update images.
 
 ---
 
