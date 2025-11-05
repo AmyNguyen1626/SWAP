@@ -438,5 +438,5 @@ A second account to test communication between users:
 - Use one of the above test accounts (test@swap.com or try@swap.com) to send a request for the listing you just created.
 - Go to the Chat page, select the conversation with your real email address.
 - Send a report against your newly created account.
-- Once reported, your account will be automatically suspended, and an email notification will be sent to inform you of the suspension.
+- Once reported, your account will be automatically suspended, and an email notification will be sent to inform you of the suspension *(Please note that this email may take a while to be delivered due to SMTP queue and network latency on the deployed environment)*.
 - If you create an account with a non-existent email, no email will be received. However, the account will still be deactivated in the system.
