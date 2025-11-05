@@ -37,7 +37,7 @@ export default function Register() {
             <div className="register-left">
                 <div className="welcome-box">
                     <h1>Welcome!</h1>
-                    <img src="/assets/logo.png" alt="Swap logo" className="welcome-logo"/>
+                    <img src="/assets/logo.png" alt="Swap logo" className="welcome-logo" />
                     <h2>Swap what you have. Find what you want.</h2>
                 </div>
             </div>
@@ -47,6 +47,7 @@ export default function Register() {
                 <form className="register-form" onSubmit={handleSubmit}>
                     <h2>Sign Up for swap</h2>
 
+                    {/* Email input */}
                     <input
                         type="email"
                         placeholder="Email"
@@ -55,6 +56,7 @@ export default function Register() {
                         required
                     />
 
+                    {/* Password input */}
                     <input
                         type="password"
                         placeholder="Password"
@@ -63,6 +65,7 @@ export default function Register() {
                         required
                     />
 
+                    {/* Confirm password input */}
                     <input
                         type="password"
                         placeholder="Confirm Password"
@@ -71,8 +74,10 @@ export default function Register() {
                         required
                     />
 
+                    {/* Submit button */}
                     <button type="submit">Create Account</button>
 
+                    {/* Error / success messages */}
                     {error && <p className="error">{error}</p>}
                     {success && <p className="success">{success}</p>}
                 </form>

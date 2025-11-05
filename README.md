@@ -46,12 +46,12 @@ Swap is an online marketplace that revolutionises the way people buy and sell ve
 ### Stack
 
 - **Frontend**: React
-- **Backend**: Firebase
+- **Backend**: Express
 - **Authentication**: Firebase Authentication
 - **Database**: Firestore
 - **Image Storage**: Cloudinary
 - **Email service**: SMTP
-- **Hosting**: Docker / Render
+- **Hosting**: Render
 - **Additional Libraries**: nodemailer
 
 ### Data Sources
@@ -145,8 +145,8 @@ This section outlines the key milestones and features successfully implemented i
 ✅ **Real-Time Notifications** - Alerts for messages and offer updates  
 ✅ **Image Management** - Multi-image upload and ordering via Cloudinary  
 ✅ **Chat System** - Real-time messaging between users  
-✅ **Moderation Tools** - Admin capabilities and user reporting  
-✅ **Professional UI/UX** - Consistent, modern design across all pages  
+✅ **Moderation Tools** - User reports suspicious accounts  
+✅ **Professional UI/UX** - Consistent, modern design across all pages
 
 ### Technical Achievements
 - Successfully implemented complex state management for swap request tracking across multiple users
@@ -162,67 +162,84 @@ This section provides a roadmap to navigate our codebase and understand where ke
 ### Project Structure
 ```
 swap/
+├── .github/
+│   ├── workflows/                      # GitHub Actions workflow for Continuous Integration
+│   │   └── ci.yml                      # Runs automated tests on push and pull requests and ensures code passes linting and unit tests
 ├── frontend/
 │   ├── public/
 │   │   └── assets/                      # Logo and static assets
+│   │   └── favicon.png                  # Favicon for the browser tab
 │   │
 │   ├── src/
 │   │   ├── components/                  # Reusable React components
-│   │   │   ├── ConversationList.jsx    # Fetch conversation lists
-│   │   │   ├── CreateListingForm.jsx   # Form to create new listing UI
-│   │   │   ├── EditListingForm.jsx     # Edit existing listing UI
-│   │   │   ├── Filter.jsx              # Browse page filtering system
-│   │   │   ├── ListingCard.jsx         # Individual listing card component UI
-│   │   │   ├── Login.jsx               # Login connectivity UI
-│   │   │   ├── Message.jsx             # Fetch and send messages
-│   │   │   ├── Navbar.jsx              # Navigation bar component
-│   │   │   ├── NotificationBadge.jsx   # Notification symbol
-│   │   │   ├── ProtectedRoute.jsx      # Secure routing component
-│   │   │   ├── Register.jsx            # Register account container UI
-│   │   │   ├── ReportModal.jsx         # Report system UI
-│   │   │   └── SwapRequestModal.jsx    # Fetch and display swap requests
+│   │   │   ├── ConversationList.jsx    # List of conversations component for the logged-in user
+│   │   │   ├── ConversationList.css    # CSS styles for the conversation list layout
+│   │   │   ├── CreateListingForm.jsx   # Form component allowing users to create a new car listing with fields
+│   │   │   ├── CreateListingForm.css   # CSS styles for create new listing form
+│   │   │   ├── EditListingForm.jsx     # Form component for editing an existing listing
+│   │   │   ├── Filter.jsx              # Filter component for marketplace to filter listings by price, condition, etc.
+│   │   │   ├── ListingCard.jsx         # Listing card component for display listing information (image, title, price)
+│   │   │   ├── ListingCard.css         # CSS styles for the listing card
+│   │   │   ├── Login.jsx               # Login form component to authenticate user with email/password
+│   │   │   ├── Login.css               # CSS styles for login form
+│   │   │   ├── Message.jsx             # Message component to handles sending and receiving messages for a specific conversation, integrates with ConversationList 
+│   │   │   ├── Message.css             # CSS styles for messages, input, and button
+│   │   │   ├── Navbar.jsx              # Navigation bar component links to Home, Browse, About Us, Profile, Chat, Create Listing, with email display, and authentication action buttons
+│   │   │   ├── Navbar.css              # CSS styles for navigaion bar
+│   │   │   ├── NotificationBadge.jsx   # Notification badge component showing count of unread messages or requests
+│   │   │   ├── NotificationBadge.css   # CSS styles for notification badge
+│   │   │   ├── ProtectedRoute.jsx      # Wrapper component for protecting routes from unauthenticated access
+│   │   │   ├── Register.jsx            # Registration form component for creating a new user account
+│   │   │   ├── Register.css            # CSS styles for registration form
+│   │   │   ├── ReportModal.jsx         # Report modal component allowing users to submit reports users through chat message
+│   │   │   ├── ReportModal.css         # CSS styles for report modal
+│   │   │   └── SwapRequestModal.jsx    # Request modal to view and send to swap requests for the user’s listings
+│   │   │   └── SwapRequestModal.css    # CSS styles for request modal
 │   │   │
 │   │   ├── contexts/                    # React Context for state management
-│   │   │   ├── AuthContext.jsx         # Authentication if user is banned
-│   │   │   ├── NotificationContext.jsx # Fetch and display new notifications
-│   │   │   └── useAuth.js              # Calls AuthContext
+│   │   │   ├── AuthContext.jsx         # Provides authentication state 
+│   │   │   ├── NotificationContext.jsx # Fetches and stores notification counts and custom hool to access in functional components
+│   │   │   └── useAuth.js              # Custom hook to access AuthContext in functional components
 │   │   │
 │   │   ├── pages/                       # Main page components
-│   │   │   ├── AboutUs.jsx             # About us page
-│   │   │   ├── Browse.jsx              # Marketplace listing view
-│   │   │   ├── ChatPage.jsx            # Messaging system page
-│   │   │   ├── CreateListingPage.jsx   # Create/edit listing forms
-│   │   │   ├── Home.jsx                # Landing page
-│   │   │   ├── ListingDetail.jsx       # Individual listing view
+│   │   │   ├── AboutUs.jsx             # Static page describing the platform, team, and contact info
+│   │   │   ├── Browse.jsx              # Marketplace listing page allows filtering, searching, and viewing listings
+│   │   │   ├── Browse.css              # CSS styles for Browse page
+│   │   │   ├── ChatPage.jsx            # Messaging system page showing conversation list and real-time chat
+│   │   │   ├── ChatPage.css            # CSS styles for Chat page
+│   │   │   ├── CreateListingPage.jsx   # Page containing CreateListingForm or EditListingForm for managing user listings
+│   │   │   ├── Home.jsx                # Landing page for users
+│   │   │   ├── ListingDetail.jsx       # Detailed view of a single listing with images, description, and swap/buy options
+│   │   │   ├── ListingDetail.css       # CSS styles for Listing Details page
 │   │   │   └── Profile.jsx             # User profile page with listings manage tabs
+│   │   │   └── Profile.css             # CSS styles for Profile page
 │   │   │
-│   │   ├── services/                    # Firebase service functions
-│   │   │   ├── listingService.js       # Fetch listings
-│   │   │   ├── messageService.js       # Fetch messages
-│   │   │   ├── notificationService.js  # Fetch notifications
+│   │   ├── services/                    # Firebase service functions for backend integration
+│   │   │   ├── listingService.js       # Create, fetch, update, delete listings
+│   │   │   ├── messageService.js       # Create and fetch messages and conversations between users
+│   │   │   ├── notificationService.js  # Fetch, mark as viewed, and manage notifications
 │   │   │   ├── profileService.js       # Fetch user profile
-│   │   │   ├── reportService.js        # Submit a report
-│   │   │   ├── swapRequestService.js   # Create and fetch swap requests
-│   │   │   └── wishlistService.js      # Fetch and remove items from wishlist
+│   │   │   ├── reportService.js        # Create a report
+│   │   │   ├── swapRequestService.js   # Create, fetch, accept, reject, and cancel swap requests
+│   │   │   └── wishlistService.js      # Fetch, add/remove, listings from wishlist
 │   │   │
-│   │   ├── App.jsx                      # Connect all routes and components
-│   │   ├── firebase.js                  # Configure Firebase connection
-│   │   ├── index.css                    # Global styling for website
-│   │   └── main.jsx                     # Main render context
+│   │   ├── App.jsx                      # Main app component that sets up routes and wraps components with context providers
+│   │   ├── index.css                    # Global styling used throughout the application
+│   │   └── main.jsx                     # Entry point to render <App /> into the DOM with necessary providers
 │   │
 │   └── package.json                     # Frontend dependencies and scripts
 │
 ├── backend/
 │   ├── __mocks__/
-│   │   └── firebase.js                  # Firebase mocks for testing
+│   │   └── firebase.js                  # Mock Firebase services (Auth, Firestore) for Jest tests (swapRequests and wishlist)
 │   │
 │   ├── bin/
-│   │   └── www                          # Server startup script
+│   │   └── www                          # Server startup script (entry point for running the Express server)
 │   │
-│   ├── middleware/
-│   │   └── authMiddleware.js            # Authentication verification middleware
+│   ├── middleware/                      # Express middleware
+│   │   └── authMiddleware.js            # Verifies authentication tokens and user access rights
 │   │
-│   ├── routes/                          # API endpoints
+│   ├── routes/                          # Express route handlers (API endpoints)
 │   │   ├── conversations.js            # Chat/messaging endpoints
 │   │   ├── index.js                    # Root routes
 │   │   ├── listings.js                 # Listing CRUD operations
@@ -232,10 +249,10 @@ swap/
 │   │   ├── users.js                    # User profile management
 │   │   └── wishlist.js                 # Wishlist operations
 │   │
-│   ├── tests/                           # Comprehensive test suite
+│   ├── tests/                           # Automated test suite
 │   │   ├── middleware/
-│   │   │   └── authMiddleware.test.js
-│   │   ├── routes/
+│   │   │   └── authMiddleware.test.js   # Tests for authentication middleware
+│   │   ├── routes/                      # Tests for route handlers (API endpoints)
 │   │   │   ├── conversations.test.js
 │   │   │   ├── index.test.js
 │   │   │   ├── listings.test.js
@@ -244,17 +261,17 @@ swap/
 │   │   │   ├── users.test.js
 │   │   │   └── wishlist.test.js
 │   │   └── utils/
-│   │       ├── cloudinaryUploader.test.js
-│   │       └── email.test.js
+│   │       ├── cloudinaryUploader.test.js # Tests Cloudinary upload helper
+│   │       └── email.test.js              # Tests email helper functions
 │   │
-│   ├── utils/                           # Helper functions
+│   ├── utils/                           # Utility/Helper functions
 │   │   ├── cloudinaryUploader.js       # Image upload to Cloudinary
-│   │   └── email.js                    # Email service for reports
+│   │   └── email.js                    # Sending emails service for reports
 │   │
-│   ├── app.js                           # Express application setup
+│   ├── app.js                           # Sets up Express app, middlewares, and routes
 │   ├── firebase.js                      # Firebase Admin SDK configuration
-│   ├── jest.config.js                   # Jest testing configuration
-│   └── package.json                     # Backend dependencies
+│   ├── jest.config.js                   # Jest configuration for backend tests
+│   └── package.json                     # Backend dependencies and scripts
 │
 ├── SCREENSHOTS/                         # Application screenshots
 ├── README.md                            # This file
@@ -291,6 +308,8 @@ While our MVP successfully delivers core marketplace and swap functionality, we'
 - **Rating System**: Allow users to rate and review completed transactions
 - **Transaction History**: Display user's transaction count and feedback
 - **Vehicle History Reports**: Integration with services for listing authenticity
+- **Admin Dashboard**: Develop a dedicated admin dashboard to manage reports, flagged users, and suspicious listings efficiently.
+- **User Roles & Permissions**: Introduce tiered access (Admin, Verified User, Regular User) to improve platform governance and reporting workflows.
 
 ### Social & Community Features
 - **User Profiles**: Enhanced profiles with bio, preferences, and transaction history
@@ -311,6 +330,8 @@ While our MVP successfully delivers core marketplace and swap functionality, we'
 ### Technical Improvements
 - **Image Optimisation**: Implement automatic image compression and optimisation
 - **Caching Strategy**: Add caching to improve page load times
+- **Role-Based Access Control (RBAC)**: Enforce backend-level access permissions for admins and users.
+- **Monitoring & Logging**: Integrate tools like Sentry or Firebase Crashlytics for error tracking and uptime monitoring.
 
 ## Team Contributions
 Our team successfully collaborated to deliver a comprehensive vehicle marketplace platform through structured project management and clear communication channels.
@@ -345,7 +366,7 @@ Our team successfully collaborated to deliver a comprehensive vehicle marketplac
 - Created Authentication pages.
 - Created Home page.
 - Created About Us page (based on Figma design).
-- Created Create listing page with rough design, and datastore implementation.
+- Created Create listing page with rough design.
 - Implemented Chat page with conversations list and messages sent and received in realtime.
 - Created Report modal in chat box to report suspicious accounts.
 - Created Frontend service components for API communication.
@@ -410,3 +431,12 @@ A second account to test communication between users:
 
 **Username**: try@swap.com
 **Password**: TrySwap2025
+
+**Reporting Feature Testing**: To test the reporting and moderation functionality:
+- Create a new account using a real email address.
+- Create a new listing.
+- Use one of the above test accounts (test@swap.com or try@swap.com) to send a request for the listing you just created.
+- Go to the Chat page, select the conversation with your real email address.
+- Send a report against your newly created account.
+- Once reported, your account will be automatically suspended, and an email notification will be sent to inform you of the suspension.
+- If you create an account with a non-existent email, no email will be received. However, the account will still be deactivated in the system.

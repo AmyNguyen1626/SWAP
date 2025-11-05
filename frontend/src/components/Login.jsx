@@ -10,6 +10,7 @@ export default function Login() {
     const [error, setError] = useState("");
     const navigate = useNavigate();
 
+    // Handle form submission
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
@@ -39,8 +40,10 @@ export default function Login() {
 
     return (
         <div className="login-container">
+            {/* Logo at the top of the login form */}
             <img src="/assets/logo.png" alt="Swap logo" className="login-logo" />
 
+            {/* Email input field */}
             <input
                 type="email"
                 placeholder="Email"
@@ -48,6 +51,7 @@ export default function Login() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
             />
+            {/* Password input field */}
             <input
                 type="password"
                 placeholder="Password"
@@ -55,10 +59,13 @@ export default function Login() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
             />
+            {/* Login button */}
             <button type="submit" onClick={handleSubmit}>Login</button>
 
+            {/* Display error messages */}
             {error && <p style={{ color: "red", marginTop: "1rem" }}>{error}</p>}
 
+            {/* Link to registration page */}
             <span className="signup-link">
                 New to Swap? <a href="/register">Create an Account Here</a>
             </span>

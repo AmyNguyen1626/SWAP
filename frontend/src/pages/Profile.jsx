@@ -30,9 +30,6 @@ export default function Profile() {
     const [requestsLoading, setRequestsLoading] = useState(false);
     const [wishlistLoading, setWishlistLoading] = useState(false);
 
-    const [showSwapModal, setShowSwapModal] = useState(false);
-    const [selectedTargetListing, setSelectedTargetListing] = useState(null);
-
     const [showContactModal, setShowContactModal] = useState(false);
     const [selectedRequest, setSelectedRequest] = useState(null);
     const [contactInfo, setContactInfo] = useState({ email: "", phone: "" });
@@ -72,6 +69,7 @@ export default function Profile() {
         }
     }, [activeTab, requestsLoading, receivedRequests.length, sentRequests.length]);
 
+    // Request actions - accept
     const handleAcceptRequestAction = async (requestId) => {
         try {
             const token = await currentUser.getIdToken();
@@ -101,6 +99,7 @@ export default function Profile() {
         }
     };
 
+    // Request actions - reject
     const handleRejectRequestAction = async (requestId) => {
         try {
             const token = await currentUser.getIdToken();
@@ -128,6 +127,7 @@ export default function Profile() {
         }
     };
 
+    // Fetch user profile
     useEffect(() => {
         async function fetchProfile() {
             try {
@@ -145,6 +145,7 @@ export default function Profile() {
         fetchProfile();
     }, [currentUser]);
 
+    // Fetch tab data
     useEffect(() => {
         if (activeTab === "listings") fetchMyListings();
     }, [activeTab]);
@@ -161,6 +162,7 @@ export default function Profile() {
         if (activeTab === "wishlist") fetchWishlist();
     }, [activeTab]);
 
+    // Fetch functions - user's listings
     async function fetchMyListings() {
         try {
             setListingsLoading(true);
@@ -174,6 +176,7 @@ export default function Profile() {
         }
     }
 
+    // Fetch functions - user's received requests
     async function fetchReceivedRequests() {
         try {
             setRequestsLoading(true);
@@ -187,6 +190,7 @@ export default function Profile() {
         }
     }
 
+    // Fetch functions - user's sent requests
     async function fetchSentRequests() {
         try {
             setRequestsLoading(true);
@@ -201,6 +205,7 @@ export default function Profile() {
         }
     }
 
+    // Fetch functions - user's wishlist
     async function fetchWishlist() {
         try {
             setWishlistLoading(true);
@@ -215,6 +220,7 @@ export default function Profile() {
         }
     }
 
+    // Delete a user's listing
     async function handleDeleteListing(listingId) {
         if (!confirm("Are you sure you want to delete this listing?")) return;
         try {
@@ -226,6 +232,7 @@ export default function Profile() {
         }
     }
 
+    // Remove a listing from wishlist
     async function handleRemoveFromWishlist(wishlistId) {
         try {
             await removeFromWishlist(currentUser, wishlistId);
@@ -236,16 +243,18 @@ export default function Profile() {
         }
     }
 
+    // Handle accepting request 
     function handleAcceptRequest(request) {
         setSelectedRequest(request);
         setShowContactModal(true);
     }
 
+    // Confirm request acceptance
     async function confirmAcceptRequest() {
         if (!selectedRequest || !contactInfo?.email) return;
 
         try {
-            await handleAcceptRequestAction(selectedRequest.id);
+            await acceptRequest(currentUser, selectedRequest.id, contactInfo);
             setShowContactModal(false);
             alert("Request accepted successfully!");
         } catch (err) {
@@ -253,6 +262,7 @@ export default function Profile() {
         }
     }
 
+    // Handle rejecting request 
     async function handleRejectRequest(requestId) {
         if (!confirm("Are you sure you want to reject this request?")) return;
 
@@ -264,10 +274,11 @@ export default function Profile() {
         }
     }
 
+    // Handle canceling request
     async function handleCancelRequest(requestId) {
         if (!confirm("Are you sure you want to cancel this request?")) return;
         try {
-            await cancelRequest(currentUser, requestId); 
+            await cancelRequest(currentUser, requestId);
 
             // Remove the request from the list
             setSentRequests(sentRequests.filter(req => req.id !== requestId));
@@ -281,6 +292,7 @@ export default function Profile() {
         }
     }
 
+    // Loading and error
     if (loading) {
         return <div className="loading">Loading profile...</div>;
     }
@@ -291,10 +303,12 @@ export default function Profile() {
 
     return (
         <div className="profile-container">
+            {/* Profile Header */}
             <div className="profile-header-section">
                 <h1 className="profile-header">My Profile</h1>
             </div>
 
+            {/* Tabs */}
             <div className="tabs">
                 <button
                     className={`tab ${activeTab === "listings" ? "active" : ""}`}
@@ -324,7 +338,9 @@ export default function Profile() {
                 </button>
             </div>
 
+            {/* Tab Content */}
             <div className="tab-content">
+                {/* User listings tab */}
                 {activeTab === "listings" && (
                     <div className="listings-section">
                         <h2>My Listings</h2>
@@ -361,6 +377,7 @@ export default function Profile() {
                     </div>
                 )}
 
+                {/* User's received requests tab */}
                 {activeTab === "received-requests" && (
                     <div className="requests-section">
                         <h2>Received Requests</h2>
@@ -422,6 +439,7 @@ export default function Profile() {
                     </div>
                 )}
 
+                {/* User's sent requests tab */}
                 {activeTab === "sent-requests" && (
                     <div className="requests-section">
                         <h2>Sent Requests</h2>
@@ -489,6 +507,7 @@ export default function Profile() {
                     </div>
                 )}
 
+                {/* User's wishlist tab */}
                 {activeTab === "wishlist" && (
                     <div className="wishlist-section">
                         <h2>My Wishlist</h2>
@@ -525,6 +544,7 @@ export default function Profile() {
                 )}
             </div>
 
+            {/* Contact Modal */}
             {showContactModal && (
                 <div className="modal-overlay" onClick={() => setShowContactModal(false)}>
                     <div className="modal-content" onClick={(e) => e.stopPropagation()}>

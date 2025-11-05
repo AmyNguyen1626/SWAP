@@ -21,10 +21,12 @@ export default function ReportModal({ targetUser, onClose }) {
         return () => urls.forEach(url => URL.revokeObjectURL(url));
     }, [evidenceFiles]);
 
+    /// Handle file input change
     const handleFileChange = (e) => {
         setEvidenceFiles([...e.target.files]);
     };
 
+    // Submit the report
     const handleSubmit = async () => {
         if (!reason) return alert("Please select a reason");
         setSubmitting(true);
@@ -48,6 +50,7 @@ export default function ReportModal({ targetUser, onClose }) {
             <div className="modal-content">
                 <h3>Report {targetUser.displayEmail}</h3>
 
+                {/* Reason selection */}
                 <label>
                     Reason:
                     <select value={reason} onChange={e => setReason(e.target.value)}>
@@ -59,6 +62,7 @@ export default function ReportModal({ targetUser, onClose }) {
                     </select>
                 </label>
 
+                {/* Optional details */}
                 <label>
                     Details (optional):
                     <textarea
@@ -68,6 +72,7 @@ export default function ReportModal({ targetUser, onClose }) {
                     />
                 </label>
 
+                {/* Evidence file upload */}
                 <label>
                     Evidence (optional):
                     <input
@@ -91,6 +96,7 @@ export default function ReportModal({ targetUser, onClose }) {
                     )}
                 </label>
 
+                {/* Modal actions */}
                 <div className="modal-actions">
                     <button onClick={onClose} disabled={submitting}>Cancel</button>
                     <button onClick={handleSubmit} disabled={submitting}>

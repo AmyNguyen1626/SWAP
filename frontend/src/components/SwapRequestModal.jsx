@@ -14,10 +14,12 @@ export default function SwapRequestModal({ targetListing, isOpen, onClose, onSuc
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
 
+    // Fetch user's listings only if modal is open and requestType is "swap"
     useEffect(() => {
         if (isOpen && requestType === "swap") fetchMyListings();
     }, [isOpen, requestType]);
 
+    // Fetch user's listings to offer for swap
     async function fetchMyListings() {
         try {
             const listings = await fetchUserListings(currentUser, targetListing.id);
@@ -29,6 +31,7 @@ export default function SwapRequestModal({ targetListing, isOpen, onClose, onSuc
         }
     }
 
+    // Handle form submission
     async function handleSubmit(e) {
         e.preventDefault();
         setError("");
@@ -43,8 +46,10 @@ export default function SwapRequestModal({ targetListing, isOpen, onClose, onSuc
                 ...(requestType === "swap" && { offeredListingId: selectedListingId }),
             };
 
+            // Send swap/buy request to backend
             await createSwapRequest(requestData, token);
 
+            // Start conversation with seller
             await createConversation(
                 { id: targetListing.id, listingName: targetListing.listingName },
                 [targetListing.userId, currentUser.uid],
@@ -52,7 +57,7 @@ export default function SwapRequestModal({ targetListing, isOpen, onClose, onSuc
                 message.trim()
             );
 
-            onSuccess?.();
+            onSuccess?.(); // callback for parent after success
             handleClose();
         } catch (err) {
             console.error(err);
@@ -62,6 +67,7 @@ export default function SwapRequestModal({ targetListing, isOpen, onClose, onSuc
         }
     }
 
+    // Reset modal state and close
     function handleClose() {
         setError("");
         setMessage("");
@@ -70,7 +76,7 @@ export default function SwapRequestModal({ targetListing, isOpen, onClose, onSuc
         onClose();
     }
 
-    if (!isOpen) return null;
+    if (!isOpen) return null;  // don't render if modal is closed
 
     return (
         <div className="modal-overlay" onClick={handleClose}>
@@ -80,6 +86,7 @@ export default function SwapRequestModal({ targetListing, isOpen, onClose, onSuc
                     <button className="close-btn" onClick={handleClose}>&times;</button>
                 </div>
 
+                {/* Preview target listing */}
                 <div className="target-listing-preview">
                     <img src={targetListing.images[0]} alt={targetListing.listingName} />
                     <div>
@@ -89,6 +96,7 @@ export default function SwapRequestModal({ targetListing, isOpen, onClose, onSuc
                 </div>
 
                 <form onSubmit={handleSubmit}>
+                    {/* Request type selection */}
                     <div className="form-group">
                         <label>Request Type</label>
                         <div className="request-type-selector">
@@ -101,6 +109,7 @@ export default function SwapRequestModal({ targetListing, isOpen, onClose, onSuc
                         </div>
                     </div>
 
+                    {/* Swap selection */}
                     {requestType === "swap" && (
                         <div className="form-group">
                             <label>Select Your Listing to Offer *</label>
@@ -121,6 +130,7 @@ export default function SwapRequestModal({ targetListing, isOpen, onClose, onSuc
                         </div>
                     )}
 
+                    {/* Optional message */}
                     <div className="form-group">
                         <label>Message (Optional)</label>
                         <textarea value={message} onChange={e => setMessage(e.target.value)} placeholder="Add a message to the seller..." rows="4" />
@@ -128,6 +138,7 @@ export default function SwapRequestModal({ targetListing, isOpen, onClose, onSuc
 
                     {error && <p className="error-message">{error}</p>}
 
+                    {/* Modal actions */}
                     <div className="modal-actions">
                         <button type="submit" className="submit-btn" disabled={loading || (requestType === "swap" && myListings.length === 0)}>
                             {loading ? "Sending..." : "Send Request"}
