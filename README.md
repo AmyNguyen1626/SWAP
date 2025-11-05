@@ -408,11 +408,15 @@ Our team successfully collaborated to deliver a comprehensive vehicle marketplac
 - CORS and service URL fixes for production deployment 
 - Project documentation
 
-**Ahnaf Samin - [Role]**
-- [To be filled in]
-- [Specific features implemented]
-- [Components created]
-- [Contributions to project]
+**Ahnaf Ahmed Samin – Frontend Developer & UI Designer**
+- Designed the overall visual identity and theme of the web app, including color palette, typography, and layout structure for a clean, modern user interface.
+- Created the project logo and ensured consistent brand presentation across all pages.
+- Developed and refined UI components to align with the selected design language and enhance user experience.
+- Redesigned and optimized the Browse page for improved usability and aesthetics.
+- Implemented an advanced filtering and sorting system on the Browse page — enabling users to sort listings by price, year, and kilometers, and filter by make, model year, and price range.
+- Added interactive dropdown menus with smooth transitions, “save filter” functionality, and outside-click detection for better UX.
+- Collaborated with teammates to test and refine UI interactions, ensuring consistency between frontend components and backend data flow.
+
 
 ### Collaboration Highlights
 
