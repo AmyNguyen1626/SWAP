@@ -4,6 +4,7 @@ import "./ListingCard.css";
 export default function ListingCard({ id, image, name, condition, location, price }) {
   const navigate = useNavigate();
 
+  // Navigate to the listing detail page when card is clicked
   const handleClick = () => {
     navigate(`/listing/${id}`);
   };

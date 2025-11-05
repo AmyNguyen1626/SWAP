@@ -9,6 +9,7 @@ export default function EditListingForm() {
     const navigate = useNavigate();
     const { currentUser } = useAuth();
 
+    // Form state to hold all listing fields
     const [formData, setFormData] = useState({
         year: "",
         make: "",
@@ -31,6 +32,7 @@ export default function EditListingForm() {
     const [loading, setLoading] = useState(true);
     const [uploading, setUploading] = useState(false);
 
+    // Fetch listing data when component mounts
     useEffect(() => {
         async function fetchListing() {
             try {
@@ -61,6 +63,7 @@ export default function EditListingForm() {
         fetchListing();
     }, [id]);
 
+    // Handle text/number input changes
     const handleChange = (e) => {
         const { name, value } = e.target;
         if (name === "price") {
@@ -71,11 +74,13 @@ export default function EditListingForm() {
         }
     };
 
+    // Format price for display (e.g., 10000 → "10,000")
     const formatPrice = (value) => {
         if (!value) return "";
         return Number(value).toLocaleString();
     };
 
+    // Handle image file selection
     const handleImageChange = (e) => {
         const files = Array.from(e.target.files);
         setImageFiles(files);
@@ -83,6 +88,7 @@ export default function EditListingForm() {
         setFormData({ ...formData, images: urls });
     };
 
+    // Reorder images (move up)
     const moveImageUp = (index) => {
         if (index === 0) return;
         const newFiles = [...imageFiles];
@@ -93,6 +99,7 @@ export default function EditListingForm() {
         setFormData({ ...formData, images: newUrls });
     };
 
+    // Reorder images (move down)
     const moveImageDown = (index) => {
         if (index === imageFiles.length - 1) return;
         const newFiles = [...imageFiles];
@@ -103,6 +110,7 @@ export default function EditListingForm() {
         setFormData({ ...formData, images: newUrls });
     };
 
+    // Remove an image
     const removeImage = (index) => {
         const newFiles = imageFiles.filter((_, i) => i !== index);
         const newUrls = formData.images.filter((_, i) => i !== index);
@@ -110,11 +118,13 @@ export default function EditListingForm() {
         setFormData({ ...formData, images: newUrls });
     };
 
+    // Generate listing name from year, make, model, and badge
     const generateListingName = () => {
         const { year, make, model, badge } = formData;
         return [year, make, model, badge].filter(Boolean).join(" ");
     };
 
+    // Handle form submission
     const handleSubmit = async (e) => {
         e.preventDefault();
         setUploading(true);
@@ -124,12 +134,12 @@ export default function EditListingForm() {
             const listingName = generateListingName();
             const data = new FormData();
 
+            // Append all fields to FormData
             data.append("listingName", listingName);
             data.append("price", formData.price);
             data.append("condition", formData.condition);
             data.append("location", formData.location);
             data.append("description", formData.description);
-
             data.append(
                 "category",
                 JSON.stringify({
@@ -168,6 +178,7 @@ export default function EditListingForm() {
         );
     }
 
+    // Display warning if user not logged in
     if (loading) return <div className="create-listing-container"><p>Loading listing...</p></div>;
 
     return (

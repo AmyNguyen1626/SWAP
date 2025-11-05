@@ -17,6 +17,7 @@ export function NotificationProvider({ children }) {
     // Fetch notification counts
     const fetchNotificationCounts = async () => {
         if (!currentUser) {
+            // Reset counts if no user is logged in
             setNotificationCounts({ 
                 unreadMessages: 0, 
                 unviewedReceivedRequests: 0,
@@ -54,9 +55,10 @@ export function NotificationProvider({ children }) {
         return () => clearInterval(interval);
     }, [currentUser]);
 
+    // Context value passed to consumers
     const value = {
         notificationCounts,
-        refreshNotifications: fetchNotificationCounts,
+        refreshNotifications: fetchNotificationCounts, // Manual refresh
         loading,
     };
 
@@ -67,6 +69,7 @@ export function NotificationProvider({ children }) {
     );
 }
 
+// Custom hook for consuming the NotificationContext
 export function useNotifications() {
     const context = useContext(NotificationContext);
     if (!context) {

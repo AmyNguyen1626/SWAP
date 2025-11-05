@@ -3,16 +3,19 @@ import { useEffect, useMemo, useState } from "react";
 export default function FilterBar({ listings = [], value, onChange }) {
   const [local, setLocal] = useState(value);
 
+  // Sync local state whe
   useEffect(() => setLocal(value), [value]);
 
+  // Compute unique categories from listings and memoise for performance
   const categories = useMemo(() => {
     const set = new Set();
     listings.forEach(l => {
       if (l?.category) set.add(String(l.category).trim());
     });
-    return ["All", ...Array.from(set).sort()];
+    return ["All", ...Array.from(set).sort()]; // add "All" as default option
   }, [listings]);
 
+  // Update local state and propagate changes to parent via `onChange`
   function update(partial) {
     const next = { ...local, ...partial };
     setLocal(next);

@@ -11,10 +11,11 @@ export default function Navbar() {
     const { notificationCounts } = useNotifications();
     const navigate = useNavigate();
 
+    // Logout function
     const handleLogout = async () => {
         try {
-            await signOut(auth);
-            navigate("/login");
+            await signOut(auth); // signout user from firebase
+            navigate("/login"); // redirect to login page
         } catch (error) {
             console.error("Error logging out:", error);
             alert("Failed to log out. Please try again.");
