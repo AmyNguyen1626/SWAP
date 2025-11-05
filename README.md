@@ -113,25 +113,36 @@ This section outlines the key milestones and features successfully implemented i
   - New swap requests
 - **Live Updates**: Ensured notifications appear without page refresh
 
-### [Chat & Messaging System]
-- Real-time messaging between users
-- Contact information exchange
-- Report users system
+### Chat & Messaging System
+- **Real-Time Messaging**: Users can exchange messages instantly without refreshing the page.
+- **Unique Conversations**: Each pair of users has only one active chat thread, regardless of how many listings or swap requests they interact with. This prevents duplicate conversations and keeps message history centralised.
+- **Contact Information Exchange**: Buyers and sellers can share emails or phone numbers securely through the platform.
+- **Reporting Suspicious Users**: Users can report inappropriate behavior or fraudulent activity directly from the chat.
 
-### [Image Upload & Management]
-- Cloudinary integration for image storage
-- Multiple image upload per listing
-- Image reordering functionality
+### Image Upload & Management
+- **Cloudinary Integration**: All uploaded images are stored securely and served via CDN.
+- **Multiple Images per Listing**: Users can attach several images to a single listing.
+- **Image Reordering**: Drag-and-drop interface allows users to reorder listing images for presentation.
+- **Image Preview**: Instant preview of uploaded images before submission.
+- **Thumbnail Generation**: Automatic thumbnail creation for gallery views and browse pages.
 
-### [User Safety & Moderation]
-- User reporting system
-- Email integration with swap.reporter@gmail.com
-- Fraudulent listing removal capability
+### User Safety & Moderation
+- **Reporting System**: Users can report suspicious accounts.
+- **Automated Account Suspension**: Reported accounts are temporarily deactivated until admin review.
+- **Email Notification**: Suspended users receive email notification sending from swap.reporter@gmail.com to inform them of the report and suspension.
+- **Chat Access Disabled**: Users cannot send or receive messages with suspended accounts.
+- **Listing Flagging**: Listings from reported accounts are flagged, preventing other users from sending swap/buy requests or adding them to their wishlist.
 
-### [Design & Wireframes]
-- Figma mockups and design system
-- UI/UX planning
-- Visual identity and branding. See the [SCREENSHOTS README.md](SCREENSHOTS/README.md) file for more details
+### Design & Wireframes
+- **Figma Mockups**: Designing UI/UX with Figma to plan layouts, interactions, and user flows.
+- **Design System**: Consistent use of colors, typography, buttons, and form elements across the platform.
+- **Visual Identity**: Logo, branding, and color schemes implemented consistently across the application.
+- **Color Palette Used**:
+  - **Dark Green #054341**: Primary color for headers, buttons, and highlights.
+  - **Light Green / Accent #6ca39f**: Secondary elements, backgrounds, or accents.
+  - **White**: Text on dark backgrounds.
+  - **Black and Light Grey**: Other smaller elements.
+- Please see the [SCREENSHOTS README.md](SCREENSHOTS/README.md) file for more details.
 
 ---
 ### Milestone Summary
