@@ -360,7 +360,7 @@ Our team successfully collaborated to deliver a comprehensive vehicle marketplac
 
 ### Individual Contributions
 
-**Amy Nguyen - RoleFull-Stack & DevOps**
+**Amy Nguyen - Full-Stack Developer & DevOps Developer**
 - Set up the project structure with Express backend and React frontend.
 - Integrated Firebase Authentication and configured backend user management.
 - Created Authentication pages.
