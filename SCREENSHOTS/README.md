@@ -65,6 +65,7 @@ This folder contains screenshots demonstrating the key features and user interfa
 
 ### Requests Received Tab
 ![Requests Received](requests-received.png)
+![Requests Received](requests-received2.png)
 **Description:** Incoming offers on user's listings. Displays offer type (buy/swap), amount or swap vehicle, and action buttons to accept or decline each offer.
 
 ### Requests Sent Tab
