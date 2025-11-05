@@ -41,7 +41,7 @@ Swap is an online marketplace that revolutionises the way people buy and sell ve
 **Safety & Moderation**
 - User reporting system
 - Admin dashboard for reviewing and removing fraudulent listings (should be added later due to the timeline for this project)
-- Support ticket system via swap.support@gmail.com
+- Support ticket system via swap.reporter@gmail.com
 
 ### Stack
 
