@@ -376,9 +376,11 @@ Our team successfully collaborated to deliver a comprehensive vehicle marketplac
 - Created Authentication pages.
 - Created Home page.
 - Created About Us page (based on Figma design).
-- Created Create listing page with rough design.
-- Implemented Chat page with conversations list and messages sent and received in realtime.
+- Created the initial version of the listing create page with a simple initial design.
+- Implemented Chat page with conversations list and messages sent and received in realtime. 
+- Integrated all chat-related APIs to send, fetch, and manage messages between users
 - Created Report modal in chat box to report suspicious accounts.
+- Connected to backend APIs for submitting reports, flagging listings, and temporarily suspending reported accounts until admin review.
 - Created Frontend service components for API communication.
 - Configured CI/CD pipeline, resolved pipeline issues, handled environment secrets, and updated timeouts to support backend testing.
 - Wrote Jest tests for backend endpoints, middleware, and utilities.
