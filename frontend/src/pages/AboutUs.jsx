@@ -30,7 +30,7 @@ export default function AboutUs() {
 
             <p><strong>Get In Touch:</strong></p>
             <ul style={{listStyleType: "none", padding: 0, margin: 0, fontSize: "inherit", lineHeight: "1.6", textAlign: "right",  marginRight: "40px"}}>
-                <li>Email: swap.report@gmail.com</li>
+                <li>Email: swap.reporter@gmail.com</li>
                 <li>Phone: +61 6767 6767</li>
             </ul>
             <p><strong>Business Hours:</strong> <br/>
