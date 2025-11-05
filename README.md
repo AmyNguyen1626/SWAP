@@ -387,11 +387,16 @@ Our team successfully collaborated to deliver a comprehensive vehicle marketplac
 - UI consistency and styling refinement
 - Project documentation and GitHub issue management
 
-**Charlene Ramos - [Role]**
-- [To be filled in]
-- [Specific features implemented]
-- [Components created]
-- [Contributions to project]
+**Charlene Ramos - UI/UX Designer and Frontend Developer**
+- Figma web app design and user flow creation 
+- Interactive homepage displaying live car listings 
+- Homepage to listing navigation linking system 
+- Edit listing functionality with form and API integration
+- About us page content update 
+- Frontend consistency and UI refinements 
+- Render deployment setup and environment configuration
+- CORS and service URL fixes for production deployment 
+- Project documentation
 
 **Ahnaf Samin - [Role]**
 - [To be filled in]
