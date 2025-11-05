@@ -57,7 +57,7 @@ export async function acceptRequest(currentUser, requestId, contactInfo) {
         const token = await getIdToken(currentUser);
         const res = await axios.post(
             `${SWAP_REQUEST_API_BASE}/${requestId}/accept`,
-            contactInfo,
+            { contactInfo },
             {
                 headers: {
                     "Content-Type": "application/json",

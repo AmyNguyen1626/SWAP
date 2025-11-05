@@ -254,7 +254,7 @@ export default function Profile() {
         if (!selectedRequest || !contactInfo?.email) return;
 
         try {
-            await handleAcceptRequestAction(selectedRequest.id);
+            await acceptRequest(currentUser, selectedRequest.id, contactInfo);
             setShowContactModal(false);
             alert("Request accepted successfully!");
         } catch (err) {
