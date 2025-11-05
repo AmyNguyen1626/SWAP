@@ -155,7 +155,10 @@ This section outlines the key milestones and features successfully implemented i
 - Maintained code quality and consistency across team contributions
 - Created comprehensive documentation and issue tracking system
 
-## Source Code Explanation
+## Project Source Code Guide
+
+This section provides a roadmap to navigate our codebase and understand where key features are implemented.
+
 ### Project Structure
 ```
 swap/
@@ -407,4 +410,3 @@ A second account to test communication between users:
 
 **Username**: try@swap.com
 **Password**: TrySwap2025
-
